@@ -1,0 +1,34 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../libs/lvgl"
+		},
+		{
+			"path": "../libs/framework"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"lvgl.h": "c",
+			"lv_examples.h": "c",
+			"lv_demos.h": "c",
+			"pthread.h": "c",
+			"stdlib.h": "c",
+			"ui.h": "c",
+			"data_bus.h": "c",
+			"util.h": "c",
+			"app_config.h": "c",
+			"custom_font.h": "c",
+			"typeinfo": "c",
+			"mergin_bin.h": "c",
+			"mergin_fsys.h": "c",
+			"string.h": "c",
+			"lv_freertos.h": "c",
+			"lv_os_none.h": "c",
+			"lv_pthread.h": "c"
+		}
+	}
+}

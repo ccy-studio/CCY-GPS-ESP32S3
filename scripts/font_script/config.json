@@ -1,0 +1,51 @@
+{
+	"desc": "构建字体的工具",
+	"outputPath": "output",
+	"fontFileConfigs": [
+		{
+			"fontPath": "./font/DigitalNumbers-Regular.ttf",
+			"generators": [
+				{
+					"size": 64,
+					"fileName": "font_dignumber_64.c",
+					"bpp": 4,
+					"symbols": "-",
+					"range": ""
+				},
+				{
+					"size": 16,
+					"fileName": "font_dignumber_16.c",
+					"bpp": 4,
+					"symbols": "KM/h",
+					"range": ""
+				}
+			]
+		},
+		{
+			"fontPath": "./font/DouyinSansBold.otf",
+			"generators": [
+				{
+					"size": 12,
+					"fileName": "font_douyin_12.c",
+					"bpp": 4,
+					"symbols": "当未开启骑行时,超自动关机的间用单里程最高速均平温度大：分钟秒小",
+					"range": ""
+				},
+				{
+					"size": 16,
+					"fileName": "font_douyin_16.c",
+					"bpp": 4,
+					"symbols": "小时分钟秒科技黑简约白关闭版本官网合作联系使用手册：良好未连接累计里程骑行长经度纬海拔当前速天线状态已卫星个间单最高均平温表盘样式自动休眠记录定位信息于机",
+					"range": ""
+				},
+				{
+					"size": 24,
+					"fileName": "font_douyin_24.c",
+					"bpp": 4,
+					"symbols": "设置",
+					"range": ""
+				}
+			]
+		}
+	]
+}

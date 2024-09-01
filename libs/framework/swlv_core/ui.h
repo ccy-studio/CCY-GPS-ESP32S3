@@ -12,10 +12,10 @@
 extern "C" {
 #endif
 
-#include "custom_font.h"
 #include "data_bus.h"
-#include "lvgl/lvgl.h"
+#include "lvgl.h"
 #include "util.h"
+#include <string.h>
 
 #define MAX_PAGE 10
 

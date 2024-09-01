@@ -6,6 +6,7 @@
  * @LastEditTime: 2023-12-25 14:29:00
  */
 #include "ui.h"
+#include "mergin_fsys.h"
 
 ui_data_t* ui_data_def[MAX_PAGE];
 
@@ -18,6 +19,7 @@ extern ui_data_t page_setting;
 void activity_init_start();
 
 void register_ui_def() {
+    init_mergin_bin_filesystem();
     activity_init_start();
     // 定义其他的Activity
     ui_data_def[0] = &ui_def_start;
@@ -41,8 +43,8 @@ static lv_obj_t* fun_get_view() {
 }
 
 static void anim_stop(lv_anim_t* a) {
-    // lv_timer_t* timer = lv_timer_create(my_timer, 500, NULL);
-    // lv_timer_set_repeat_count(timer, 1);
+    lv_timer_t* timer = lv_timer_create(my_timer, 500, NULL);
+    lv_timer_set_repeat_count(timer, 1);
 }
 
 static void anim_cb2(void* var, int32_t v) {
@@ -52,7 +54,8 @@ static void anim_cb2(void* var, int32_t v) {
 static void anim_cb(void* var, int32_t v) {
     lv_obj_set_style_opa(var, v, LV_PART_MAIN);
     if (v == 255) {
-        lv_obj_t* label = ((lv_obj_t*)var)->user_data;
+        // lv_obj_t* label = ((lv_obj_t*)var)->user_data;
+        lv_obj_t* label = lv_obj_get_user_data(var);
         // 创建动画
         lv_anim_t a;
         lv_anim_init(&a);
@@ -79,7 +82,8 @@ void activity_init_start() {
     lv_obj_center(product);
     lv_label_set_text(product, APP_NAME);
     lv_obj_set_style_text_color(product, lv_color_hex(0xfb8b05), LV_PART_MAIN);
-    lv_obj_set_style_text_font(product, &lv_font_montserrat_24, LV_PART_MAIN);
+    // lv_obj_set_style_text_font(product, &lv_font_montserrat_24,
+    // LV_PART_MAIN);
     lv_obj_set_style_opa(product, 0, LV_PART_MAIN);
 
     lv_obj_t* label = lv_label_create(ui_screen_start);
@@ -91,8 +95,11 @@ void activity_init_start() {
     lv_obj_add_flag(label, LV_OBJ_FLAG_HIDDEN);
     lv_obj_set_style_text_color(label, lv_color_hex(0xfb8b05), LV_PART_MAIN);
     // lv_obj_set_style_text_font(label, &font_douyin_12, LV_PART_MAIN);
-    product->user_data = label;
-    label->user_data = NULL;
+    // product->user_data = label;
+    // label->user_data = NULL;
+
+    lv_obj_set_user_data(product, label);
+    lv_obj_set_user_data(label, NULL);
 
     // 创建动画
     lv_anim_t a;

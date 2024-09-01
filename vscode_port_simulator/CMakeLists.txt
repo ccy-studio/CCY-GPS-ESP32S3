@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(lvgl)
+project(main_lvgl)
 
 option(LV_USE_DRAW_SDL "Use SDL draw unit" OFF)
 option(LV_USE_LIBPNG "Use libpng to decode PNG" OFF)
@@ -7,8 +7,8 @@ option(LV_USE_LIBJPEG_TURBO "Use libjpeg turbo to decode JPEG" OFF)
 option(LV_USE_FFMPEG "Use libffmpeg to display video using lv_ffmpeg" OFF)
 option(LV_USE_FREETYPE "Use freetype lib" OFF)
 
-set(CMAKE_C_STANDARD 99)#C99 # lvgl officially support C99 and above
-set(CMAKE_CXX_STANDARD 17)#C17
+set(CMAKE_C_STANDARD 99) # C99 # lvgl officially support C99 and above
+set(CMAKE_CXX_STANDARD 17) # C17
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
@@ -21,17 +21,30 @@ add_compile_definitions($<$<BOOL:${LV_USE_LIBPNG}>:LV_USE_LIBPNG=1>)
 add_compile_definitions($<$<BOOL:${LV_USE_LIBJPEG_TURBO}>:LV_USE_LIBJPEG_TURBO=1>)
 add_compile_definitions($<$<BOOL:${LV_USE_FFMPEG}>:LV_USE_FFMPEG=1>)
 
-add_subdirectory(../libs/lvgl lvgl)
+# add_subdirectory(../libs/lvgl lvgl)
+add_subdirectory(../libs/framework framework)
+message("PROJECT_SOURCE_DIR = ${PROJECT_SOURCE_DIR}")
 target_include_directories(lvgl PUBLIC ${PROJECT_SOURCE_DIR} ${SDL2_INCLUDE_DIRS})
 
-add_executable(main main/src/main.c main/src/mouse_cursor_icon.c)
+# 添加字体
+file(GLOB_RECURSE FONT_SOURCES ${PROJECT_SOURCE_DIR}/main/src/font/*.c)
 
+add_executable(main main/src/main.c main/src/mouse_cursor_icon.c main/src/local_fs_bin.c ${FONT_SOURCES})
+
+#添加BIN资源路径
+target_compile_definitions(main PRIVATE BIN_DIR="${PROJECT_SOURCE_DIR}/merge.bin")
 target_compile_definitions(main PRIVATE LV_CONF_INCLUDE_SIMPLE)
-target_link_libraries(main lvgl lvgl::examples lvgl::demos lvgl::thorvg ${SDL2_LIBRARIES} m pthread)
-add_custom_target (run COMMAND ${EXECUTABLE_OUTPUT_PATH}/main DEPENDS main)
+target_compile_definitions(main PRIVATE LV_LVGL_H_INCLUDE_SIMPLE)
+target_link_libraries(main lvgl lvgl::examples lvgl::demos lvgl::thorvg framework::all ${SDL2_LIBRARIES} m pthread)
+
+# target_link_libraries(main lvgl lvgl::examples lvgl::demos lvgl::thorvg  ${SDL2_LIBRARIES} m pthread)
+file(COPY SDL2.dll DESTINATION ../bin)
+
+add_custom_target(run COMMAND ${EXECUTABLE_OUTPUT_PATH}/main DEPENDS main)
 
 if(LV_USE_DRAW_SDL)
     set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake")
+
     # Need to install libsdl2-image-dev
     # `sudo apt install libsdl2-image-dev`
     # `brew install sdl2_image`
@@ -76,6 +89,7 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
         -Wextra
         -Wformat-security
         -Wmaybe-uninitialized
+
         # -Wmissing-prototypes
         -Wpointer-arith
         -Wmultichar
@@ -93,35 +107,35 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug")
     )
 
     # Check if the compiler supports -fsanitize=leak, -fsanitize=address, and -fsanitize=undefined
-    include(CheckCXXCompilerFlag)
+    # include(CheckCXXCompilerFlag)
 
-    check_cxx_compiler_flag("-fsanitize=leak" HAS_SANITIZE_LEAK)
-    check_cxx_compiler_flag("-fsanitize=address" HAS_SANITIZE_ADDRESS)
-    check_cxx_compiler_flag("-fsanitize=undefined" HAS_SANITIZE_UNDEFINED)
+    # check_cxx_compiler_flag("-fsanitize=leak" HAS_SANITIZE_LEAK)
+    # check_cxx_compiler_flag("-fsanitize=address" HAS_SANITIZE_ADDRESS)
+    # check_cxx_compiler_flag("-fsanitize=undefined" HAS_SANITIZE_UNDEFINED)
 
     # Prepare the list of sanitizers
-    set(SANITIZERS "")
-    if (HAS_SANITIZE_ADDRESS)
-        set(SANITIZERS "${SANITIZERS},address")
-    endif()
+    # set(SANITIZERS "")
+    # if (HAS_SANITIZE_ADDRESS)
+    # set(SANITIZERS "${SANITIZERS},address")
+    # endif()
 
-    if (HAS_SANITIZE_UNDEFINED)
-        set(SANITIZERS "${SANITIZERS},undefined")
-    endif()
+    # if (HAS_SANITIZE_UNDEFINED)
+    # set(SANITIZERS "${SANITIZERS},undefined")
+    # endif()
 
-    if (HAS_SANITIZE_LEAK)
-        set(SANITIZERS "${SANITIZERS},leak")
-    endif()
+    # if (HAS_SANITIZE_LEAK)
+    # set(SANITIZERS "${SANITIZERS},leak")
+    # endif()
 
-    # Remove leading comma if there are any sanitizers
-    string(REGEX REPLACE "^," "" SANITIZERS "${SANITIZERS}")
+    # # Remove leading comma if there are any sanitizers
+    # string(REGEX REPLACE "^," "" SANITIZERS "${SANITIZERS}")
 
-    # Add the sanitizers to the compile options if any are supported
-    if (SANITIZERS)
-        message(STATUS "Sanitizers enabled: ${SANITIZERS}")
-        target_compile_options(main PRIVATE -fsanitize=${SANITIZERS})
-        target_link_options(main PRIVATE -fsanitize=${SANITIZERS})
-    else()
-        message(STATUS "Sanitizers not enabled")
-    endif()
+    # # Add the sanitizers to the compile options if any are supported
+    # if (SANITIZERS)
+    # message(STATUS "Sanitizers enabled: ${SANITIZERS}")
+    # target_compile_options(main PRIVATE -fsanitize=${SANITIZERS})
+    # target_link_options(main PRIVATE -fsanitize=${SANITIZERS})
+    # else()
+    # message(STATUS "Sanitizers not enabled")
+    # endif()
 endif()
