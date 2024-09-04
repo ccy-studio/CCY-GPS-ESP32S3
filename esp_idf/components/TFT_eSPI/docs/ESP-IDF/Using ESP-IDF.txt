@@ -1,0 +1,146 @@
+The TFT_eSPI library has been updated by a user (dracir9) in pull request #1770 to enable
+use with the ESP-IDF.
+
+https://github.com/Bodmer/TFT_eSPI/pull/1770
+
+The library author (Bodmer) does not use the ESP-IDF so will not be able to provide support!
+
+There are two ways to configure the library either:
+
+    manually enter the setup in menuconfig
+    OR
+    delete the KConfig file, select your LCD/board in the User_Setup_Select.h file, and run "idf.py reconfigure"
+
+The following menuconfig instructions were posted by dracir9 as part of the pull request #1770:
+
+https://github.com/Bodmer/TFT_eSPI/pull/1770#issuecomment-1096478997
+
+In the above link the instructions include useful hyperlinks. The bare text of the
+instructions is included below.
+
+Steps to use:
+
+  1.  Install ESP-IDF toolchain. The easiest way is to use VS Code and the ESP-IDF extension
+      which handles most of the work automatically. Make sure to install version V4.4. From
+      now on I'll assume that VS Code is being used.
+ 
+  2.  Once ESP-IDF is installed open VS Code and press F1. Type ESP-IDF: New Project. Hit enter.
+  
+  3.  Enter your project name, directory and board (if not sure choose ESP32 chip (via ESP-PROG)).
+      If your board is connected choose serial port. Leave ESP-IDF component directory blank and
+      press Choose Template.
+      
+  4.  In the drop-down choose Extension and select Arduino-as-component. (This is not mandatory.
+      You can try other templates if you want). This will create a blank project with a simple
+      main source file in the "main" folder.
+      
+  5.  Now we have to add Arduino to your project. You can find the complete documentation here:
+      https://github.com/espressif/arduino-esp32
+      
+      and here:
+      https://docs.espressif.com/projects/arduino-esp32/en/latest/esp-idf_component.html
+      
+      I'll list two methods that I use most of the time:
+
+      5.1. Press F1 and type ESP-IDF: Add Arduino ESP32 as ESP-IDF Component. This will
+      automatically download and install the latest code from the arduino esp-32 repository.
+      This is the easiest method but as it uses the latest code it may introduce compilation errors.
+
+      5.2. Go to the Arduino esp-32 repository release page. Choose a version and find its "Assets"
+      section. Download the source code file into "project directory/components". Extract the
+      compressed file. This will create a folder called arduino-esp32-2.x.x. Rename it to arduino.
+      This method is slightly more complex but ensures you choose a stable version.
+      
+  6.  Download the TFT_eSPI library into the components folder
+  
+  7.  Now open VS Code and load your project folder. Press F1 and type ESP-IDF: SDK Configuration
+      editor (menuconfig). Alternatively press Ctrl+E, G or press the gear button in the bottom left
+      corner.
+      
+  8.  This will open the project configuration menu. Navigate to the TFT_eSPI section and configure
+      the library (TFT driver, pins, fonts, etc.).
+      
+  9.  Press F1 and type ESP-IDF: Build your project. Alternatively press Ctrl+E, B or click the
+      build button in the bottom left corner.
+      
+ 10.  Choose your port by typing ESP-IDF: Select port to use or with the button in the bottom left.
+ 
+ 11.  Upload your code with the lightning button in the bottom toolbar.
+ 
+ 12.  Enjoy!
+
+
+
+
+
+
+用户 （dracir9） 在 pull request #1770 中更新了 TFT_eSPI 库，以启用
+与 ESP-IDF 配合使用。
+
+https://github.com/Bodmer/TFT_eSPI/pull/1770
+
+库作者 （Bodmer） 不使用 ESP-IDF，因此无法提供支持！
+
+有两种方法可以配置库：
+
+在 menuconfig 中手动输入 setup
+    或
+    删除 KConfig 文件，在 User_Setup_Select.h 文件中选择您的 LCD/板，然后运行 “idf.py reconfigure”
+
+以下 menuconfig 说明由 dracir9 作为拉取请求 #1770 的一部分发布：
+
+https://github.com/Bodmer/TFT_eSPI/pull/1770#issuecomment-1096478997
+
+在上面的链接中，说明包括有用的超链接。的
+说明如下。
+
+使用步骤：
+
+1. 安装 ESP-IDF 工具链。最简单的方法是使用 VS Code 和 ESP-IDF 扩展
+      它会自动处理大部分工作。确保安装 V4.4 版本。从
+      现在，我假设正在使用 VS Code。
+ 
+2. 安装 ESP-IDF 后，打开 VS Code 并按 F1。键入 ESP-IDF： New Project。按 Enter。
+  
+3. 输入您的项目名称、目录和开发板（如果不确定，请选择 ESP32 芯片（通过 ESP-PROG））。
+      如果您的板已连接，请选择 serial port。将 ESP-IDF 组件目录留空，然后
+      按 Choose Template（选择模板）。
+      
+4. 在下拉列表中，选择 Extension 并选择 Arduino-as-component。（这不是强制性的。
+      如果需要，您可以尝试其他模板）。这将创建一个具有简单
+      main source file 在 “main” 文件夹中。
+      
+5. 现在我们必须将 Arduino 添加到您的项目中。您可以在此处找到完整的文档：
+      https://github.com/espressif/arduino-esp32
+      
+和这里：
+      https://docs.espressif.com/projects/arduino-esp32/en/latest/esp-idf_component.html
+      
+我将列出我最常使用的两种方法：
+
+5.1. 按 F1 并键入 ESP-IDF：添加 Arduino ESP32 作为 ESP-IDF 组件。这将
+      从 Arduino ESP-32 存储库自动下载并安装最新代码。
+      这是最简单的方法，但由于它使用最新的代码，因此可能会引入编译错误。
+
+5.2. 转到 Arduino esp-32 存储库发布页面。选择一个版本并找到其 “Assets”
+      部分。将源码文件下载到 “project directory/components” 中。提取
+      压缩文件。这将创建一个名为 arduino-esp32-2.x.x 的文件夹。将其重命名为 arduino。
+      此方法稍微复杂一些，但可以确保你选择稳定的版本。
+      
+6. 将 TFT_eSPI 库下载到 components 文件夹中
+  
+7. 现在打开 VS Code 并加载您的项目文件夹。按 F1 并键入 ESP-IDF： SDK CONFIGURATION
+      编辑器 （menuconfig）。或者按 Ctrl+E、G 或按左下角的齿轮按钮
+      角落。
+      
+8. 这将打开项目配置菜单。导航到 TFT_eSPI 部分并配置
+      库（TFT 驱动程序、引脚、字体等）。
+      
+9. 按 F1 并键入 ESP-IDF： Build your project。或者按 Ctrl+E、B 或单击
+      构建按钮。
+      
+10. 通过键入 ESP-IDF： Select port to use 或使用左下角的按钮选择您的端口。
+ 
+11. 使用底部工具栏中的闪电按钮上传您的代码。
+ 
+12. 享受吧！

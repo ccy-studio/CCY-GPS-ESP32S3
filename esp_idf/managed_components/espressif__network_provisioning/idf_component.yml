@@ -1,0 +1,9 @@
+dependencies:
+  idf: '>=5.1'
+description: Network provisioning component for Wi-Fi or Thread devices
+repository: git://github.com/espressif/idf-extra-components.git
+repository_info:
+  commit_sha: 7c636236c79a99d249a15f70bffd4ff92745cb77
+  path: network_provisioning
+url: https://github.com/espressif/idf-extra-components/tree/master/network_provisioning
+version: 1.0.1
