@@ -16,17 +16,16 @@
 #include "Arduino.h"
 #include "constant.h"
 #include "driver/gpio.h"
-// #include "drivers/display/tft_espi/lv_tft_espi.h"
-#include "lv_tft_espi.h"
+#include "drivers/display/tft_espi/lv_tft_espi.h"
 #include "esp_chip_info.h"
 #include "esp_flash.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "sdkconfig.h"
 // #include "ui.h"
-#include "lvgl.h"
 #include "lv_demos.h"
 #include "lv_examples.h"
+#include "lvgl.h"
 
 #define MY_DISP_HOR_RES 240
 #define MY_DISP_VER_RES 300
@@ -37,7 +36,9 @@ static lv_display_t* hal_init(int32_t w, int32_t h);
 
 extern "C" void app_main(void) {
     initArduino();
+    Serial.begin(115200);
     printf("Hello Saisaiwa GPS ESP32Project!\n");
+
 
     /* Print chip information */
     esp_chip_info_t chip_info;
@@ -67,6 +68,9 @@ extern "C" void app_main(void) {
     printf("Minimum free heap size: %" PRIu32 " bytes\n",
            esp_get_minimum_free_heap_size());
 
+    pinMode(IO_POWER_EN_PIN, OUTPUT);
+    digitalWrite(IO_POWER_EN_PIN, 1);
+
     printf("=====>>>> initialize lvgl....\n");
     lv_init();
     hal_init(240, 240);
@@ -74,7 +78,6 @@ extern "C" void app_main(void) {
     printf("=====>>>> launch ui pages\n");
     // ui_init_and_start();
     lv_demo_widgets();
-
 
     while (1) {
         lv_timer_handler();
@@ -86,9 +89,7 @@ extern "C" void app_main(void) {
 /**
  * 外部输入事件
  */
-static void hal_button_indev_cb(lv_indev_t * indev, lv_indev_data_t * data){
-
-}
+static void hal_button_indev_cb(lv_indev_t* indev, lv_indev_data_t* data) {}
 
 static lv_display_t* hal_init(int32_t w, int32_t h) {
     // LVGL 需要系统滴答来了解动画和其他任务的经过时间。
@@ -103,7 +104,7 @@ static lv_display_t* hal_init(int32_t w, int32_t h) {
     lv_indev_t* indev = lv_indev_create(); /*Create an input device*/
     lv_indev_set_type(
         indev, LV_INDEV_TYPE_BUTTON); /*Touch pad is a pointer-like device*/
-        lv_indev_set_read_cb(indev,hal_button_indev_cb);
+    lv_indev_set_read_cb(indev, hal_button_indev_cb);
 
     lv_indev_set_display(indev, display);
     lv_display_set_default(display);
@@ -116,7 +117,7 @@ static lv_display_t* hal_init(int32_t w, int32_t h) {
     // gpio_config(&pwm_io);
     // gpio_set_level(IO_PWM_PIN, 1);
 
-    pinMode(IO_PWM_PIN,OUTPUT);
-    digitalWrite(IO_PWM_PIN,1);
+    pinMode(IO_PWM_PIN, OUTPUT);
+    digitalWrite(IO_PWM_PIN, 1);
     return display;
 }

@@ -28,7 +28,8 @@
 			"string.h": "c",
 			"lv_freertos.h": "c",
 			"lv_os_none.h": "c",
-			"lv_pthread.h": "c"
+			"lv_pthread.h": "c",
+			"lv_mem.h": "c"
 		}
 	}
 }
