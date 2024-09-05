@@ -20,7 +20,8 @@
 /*********************
  *      DEFINES
  *********************/
-
+#define MY_DISP_HOR_RES 240
+#define MY_DISP_VER_RES 280
 /**********************
  *      TYPEDEFS
  **********************/
@@ -77,7 +78,7 @@ int main(int argc, char** argv) {
     lv_init();
 
     /*Initialize the HAL (display, input devices, tick) for LVGL*/
-    hal_init(240, 240);
+    hal_init(MY_DISP_HOR_RES, MY_DISP_VER_RES);
 
     lv_log("lvgl 日志配置测试");
 

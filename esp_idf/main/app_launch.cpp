@@ -23,12 +23,15 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 // #include "ui.h"
-// #include "lv_demos.h"
-// #include "lv_examples.h"
+#include "lv_demos.h"
+#include "lv_examples.h"
 #include "lvgl.h"
 
+/**
+ * 屏幕的尺寸
+ */
 #define MY_DISP_HOR_RES 240
-#define MY_DISP_VER_RES 300
+#define MY_DISP_VER_RES 280
 
 #define BYTE_PER_PIXEL (LV_COLOR_FORMAT_GET_SIZE(LV_COLOR_FORMAT_RGB565))
 
@@ -45,27 +48,52 @@ static void test_ui() {
     lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(scr, lv_color_black(), LV_PART_MAIN);
 
-    // lv_obj_t* product = lv_label_create(scr);
-    // lv_obj_set_width(product, LV_SIZE_CONTENT);
-    // lv_obj_set_height(product, LV_SIZE_CONTENT);
-    // lv_obj_center(product);
-    // lv_label_set_text(product, "Saisaiwa");
-    // lv_obj_set_style_text_color(product, lv_color_hex(0xfb8b05),
-    // LV_PART_MAIN);
+    lv_obj_t* product = lv_label_create(scr);
+    lv_obj_set_width(product, LV_SIZE_CONTENT);
+    lv_obj_set_height(product, LV_SIZE_CONTENT);
+    lv_obj_center(product);
+    lv_label_set_text(product, "Saisaiwa");
+    lv_obj_set_style_text_color(product, lv_color_hex(0xfb8b05), LV_PART_MAIN);
 
-    for (size_t x = 0; x <= MY_DISP_HOR_RES; x += (MY_DISP_HOR_RES / 3)) {
-        for (size_t y = 0; y <= MY_DISP_VER_RES; y += (MY_DISP_VER_RES / 10)) {
-            lv_obj_t* text = lv_label_create(scr);
-            lv_obj_set_width(text, LV_SIZE_CONTENT);
-            lv_obj_set_height(text, LV_SIZE_CONTENT);
-            lv_obj_set_pos(text, x, y);
-            lv_label_set_text_fmt(text, "T-%d*%d", x, y);
-            lv_obj_set_style_text_color(text, lv_color_hex(0x1ba784),
-                                        LV_PART_MAIN);
-        }
-    }
+    lv_obj_t* text = lv_label_create(scr);
+    lv_obj_set_width(text, LV_SIZE_CONTENT);
+    lv_obj_set_height(text, LV_SIZE_CONTENT);
+    lv_obj_set_pos(text, 0, 0);
+    lv_label_set_text_fmt(text, "LeftPoint");
+    lv_obj_set_style_text_color(text, lv_color_hex(0x1ba784), LV_PART_MAIN);
+
+    text = lv_label_create(scr);
+    lv_obj_set_width(text, LV_SIZE_CONTENT);
+    lv_obj_set_height(text, LV_SIZE_CONTENT);
+    lv_obj_set_pos(text, lv_disp_get_hor_res(dispp) - 28,
+                   lv_disp_get_ver_res(dispp) / 2);
+    lv_label_set_text_fmt(text, "RightPoint");
+    lv_obj_set_style_text_color(text, lv_color_hex(0x1ba784), LV_PART_MAIN);
 
     lv_scr_load_anim(scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+}
+
+
+/**
+ * https://github.com/mikalhart/TinyGPSPlus/blob/master/examples/FullExample/FullExample.ino
+ */
+static void gps_thread(void* params) {
+    Serial1.begin(9600, SERIAL_8N1, IO_GPS_RX, IO_GPS_TX);
+    delay(1000);
+    size_t len = sizeof(char) * 50;
+    char* buf = (char*)heap_caps_malloc(len, MALLOC_CAP_SPIRAM);
+    size_t i = 0;
+    while (1) {
+        vTaskDelay(pdMS_TO_TICKS(100));
+        memset(buf, 0, len);
+        i = 0;
+        if (Serial1.available()) {
+            Serial1.read(buf + i, 1);
+            i++;
+        }
+        printf(buf);
+    }
+    heap_caps_free(buf);
 }
 
 extern "C" void app_main(void) {
@@ -105,15 +133,17 @@ extern "C" void app_main(void) {
     digitalWrite(IO_POWER_EN_PIN, 1);
 
     printf("=====>>>> initialize lvgl....\n");
-    lv_init();
-    hal_init(240, 240);
+    // lv_init();
+    // hal_init(240, 240);
 
     printf("=====>>>> launch ui pages\n");
     // ui_init_and_start();
     // lv_demo_widgets();
     // lv_demo_widgets_start_slideshow();
 
-    test_ui();
+    // test_ui();
+
+    xTaskCreate(gps_thread, "GPS", 4096, NULL, 1, NULL);
 
     while (1) {
         lv_timer_handler();
