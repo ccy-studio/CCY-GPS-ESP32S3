@@ -3,7 +3,7 @@
  * @Blog: saisaiwa.com
  * @Author: ccy
  * @Date: 2024-09-02 11:39:24
- * @LastEditTime: 2024-09-04 18:00:04
+ * @LastEditTime: 2024-09-05 17:38:54
  */
 /*
  * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
@@ -23,8 +23,8 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 // #include "ui.h"
-#include "lv_demos.h"
-#include "lv_examples.h"
+// #include "lv_demos.h"
+// #include "lv_examples.h"
 #include "lvgl.h"
 
 #define MY_DISP_HOR_RES 240
@@ -34,11 +34,44 @@
 
 static lv_display_t* hal_init(int32_t w, int32_t h);
 
+static void test_ui() {
+    lv_disp_t* dispp = lv_disp_get_default();
+    lv_theme_t* theme = lv_theme_default_init(
+        dispp, lv_palette_main(LV_PALETTE_BLUE),
+        lv_palette_main(LV_PALETTE_RED), false, LV_FONT_DEFAULT);
+    lv_disp_set_theme(dispp, theme);
+
+    lv_obj_t* scr = lv_obj_create(NULL);
+    lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_set_style_bg_color(scr, lv_color_black(), LV_PART_MAIN);
+
+    // lv_obj_t* product = lv_label_create(scr);
+    // lv_obj_set_width(product, LV_SIZE_CONTENT);
+    // lv_obj_set_height(product, LV_SIZE_CONTENT);
+    // lv_obj_center(product);
+    // lv_label_set_text(product, "Saisaiwa");
+    // lv_obj_set_style_text_color(product, lv_color_hex(0xfb8b05),
+    // LV_PART_MAIN);
+
+    for (size_t x = 0; x <= MY_DISP_HOR_RES; x += (MY_DISP_HOR_RES / 3)) {
+        for (size_t y = 0; y <= MY_DISP_VER_RES; y += (MY_DISP_VER_RES / 10)) {
+            lv_obj_t* text = lv_label_create(scr);
+            lv_obj_set_width(text, LV_SIZE_CONTENT);
+            lv_obj_set_height(text, LV_SIZE_CONTENT);
+            lv_obj_set_pos(text, x, y);
+            lv_label_set_text_fmt(text, "T-%d*%d", x, y);
+            lv_obj_set_style_text_color(text, lv_color_hex(0x1ba784),
+                                        LV_PART_MAIN);
+        }
+    }
+
+    lv_scr_load_anim(scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
+}
+
 extern "C" void app_main(void) {
     initArduino();
     Serial.begin(115200);
     printf("Hello Saisaiwa GPS ESP32Project!\n");
-
 
     /* Print chip information */
     esp_chip_info_t chip_info;
@@ -77,13 +110,15 @@ extern "C" void app_main(void) {
 
     printf("=====>>>> launch ui pages\n");
     // ui_init_and_start();
-    lv_demo_widgets();
+    // lv_demo_widgets();
+    // lv_demo_widgets_start_slideshow();
+
+    test_ui();
 
     while (1) {
         lv_timer_handler();
-        vTaskDelay(pdMS_TO_TICKS(10));
+        delay(10);
     }
-    vTaskDelete(NULL);
 }
 
 /**
@@ -94,12 +129,13 @@ static void hal_button_indev_cb(lv_indev_t* indev, lv_indev_data_t* data) {}
 static lv_display_t* hal_init(int32_t w, int32_t h) {
     // LVGL 需要系统滴答来了解动画和其他任务的经过时间。
     lv_tick_set_cb(xTaskGetTickCount);
-    // 创建绘制缓冲区
-    // 1/10的缓存
-    static uint8_t
-        buf1[MY_DISP_HOR_RES * MY_DISP_VER_RES / 10 * BYTE_PER_PIXEL];
-    lv_display_t* display = lv_tft_espi_create(MY_DISP_HOR_RES, MY_DISP_VER_RES,
-                                               buf1, sizeof(buf1));
+    // 创建绘制缓冲区 - 双缓冲区
+    size_t len = MY_DISP_HOR_RES * MY_DISP_VER_RES * BYTE_PER_PIXEL;
+    void* buf1 = heap_caps_malloc(len, MALLOC_CAP_SPIRAM);
+    void* buf2 = heap_caps_malloc(len, MALLOC_CAP_SPIRAM);
+
+    lv_display_t* display =
+        lv_tft_espi_create(MY_DISP_HOR_RES, MY_DISP_VER_RES, buf1, buf2, len);
 
     lv_indev_t* indev = lv_indev_create(); /*Create an input device*/
     lv_indev_set_type(
@@ -110,14 +146,8 @@ static lv_display_t* hal_init(int32_t w, int32_t h) {
     lv_display_set_default(display);
 
     // // 初始化屏幕的PWM调光
-    // gpio_config_t pwm_io = {
-    //     .pin_bit_mask = BIT(IO_PWM_PIN),
-    //     .mode = GPIO_MODE_OUTPUT,
-    // };
-    // gpio_config(&pwm_io);
-    // gpio_set_level(IO_PWM_PIN, 1);
-
     pinMode(IO_PWM_PIN, OUTPUT);
-    digitalWrite(IO_PWM_PIN, 1);
+    // digitalWrite(IO_PWM_PIN, 1);
+    analogWrite(IO_PWM_PIN, 100);
     return display;
 }

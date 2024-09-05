@@ -27,8 +27,8 @@
       }
       else
       {
-        colstart = 0;
-        rowstart = 0;
+        colstart = 0; //修改这里设置偏移量
+        rowstart = 35;
       }
 #endif
       writedata(TFT_MAD_COLOR_ORDER);
