@@ -3,3 +3,6 @@ build/
 bin/
 
 cmake-build-debug
+
+
+.vscode/settings.json
