@@ -3,7 +3,7 @@
  * @Blog: saisaiwa.com
  * @Author: ccy
  * @Date: 2024-09-02 11:39:24
- * @LastEditTime: 2024-09-05 17:38:54
+ * @LastEditTime: 2024-09-06 15:39:21
  */
 /*
  * SPDX-FileCopyrightText: 2010-2022 Espressif Systems (Shanghai) CO LTD
@@ -26,6 +26,7 @@
 #include "lv_demos.h"
 #include "lv_examples.h"
 #include "lvgl.h"
+#include "./include/interface_impl.h"
 
 /**
  * 屏幕的尺寸
@@ -132,6 +133,10 @@ extern "C" void app_main(void) {
     pinMode(IO_POWER_EN_PIN, OUTPUT);
     digitalWrite(IO_POWER_EN_PIN, 1);
 
+
+    printf("====>>Initialize Interface");
+    
+
     printf("=====>>>> initialize lvgl....\n");
     // lv_init();
     // hal_init(240, 240);
@@ -143,7 +148,8 @@ extern "C" void app_main(void) {
 
     // test_ui();
 
-    xTaskCreate(gps_thread, "GPS", 4096, NULL, 1, NULL);
+    // xTaskCreate(gps_thread, "GPS", 4096, NULL, 1, NULL);
+    interface_initialize();
 
     while (1) {
         lv_timer_handler();
