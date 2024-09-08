@@ -66,12 +66,12 @@ static void create_battery_bar() {
 static void on_create_fun(ui_data_t* ui_dat, void* params) {
     _this = ui_dat;
     page_view = lv_obj_create(NULL);
-    lv_obj_clear_flag(page_view, LV_OBJ_FLAG_SCROLLABLE);  /// Flags
-    lv_obj_set_style_bg_img_src(page_view, "S:/img/dark-dial.bin",
+    lv_obj_clear_flag(page_view, LV_OBJ_FLAG_SCROLLABLE);  
+    lv_obj_set_style_bg_img_src(page_view, "S:/img/dark_style_bg.bin",
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
 
     icon_gps = lv_img_create(page_view);
-    lv_img_set_src(icon_gps, "S:/img/icon-gps.bin");
+    lv_img_set_src(icon_gps, "S:/img/gps.bin");
     lv_obj_set_width(icon_gps, LV_SIZE_CONTENT);
     lv_obj_set_height(icon_gps, LV_SIZE_CONTENT);
     lv_obj_set_x(icon_gps, 42);
@@ -81,8 +81,8 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_add_flag(icon_gps, LV_OBJ_FLAG_HIDDEN);
 
     text_current_time = lv_label_create(page_view);
-    lv_obj_set_width(text_current_time, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_current_time, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_width(text_current_time, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_current_time, LV_SIZE_CONTENT);  
     lv_obj_set_x(text_current_time, 104);
     lv_obj_set_y(text_current_time, 5);
     lv_label_set_text(text_current_time, "00:00");
@@ -94,11 +94,11 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     LV_PART_MAIN | LV_STATE_DEFAULT);
 
     text_battery = lv_label_create(page_view);
-    lv_obj_set_width(text_battery, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_battery, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_width(text_battery, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_battery, LV_SIZE_CONTENT);  
     lv_obj_set_x(text_battery, 180);
     lv_obj_set_y(text_battery, 9);
-    lv_label_set_text(text_battery, "0%");
+    lv_label_set_text(text_battery, "100%");
     lv_obj_set_style_text_color(text_battery, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_battery, 255,
@@ -113,8 +113,8 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_set_style_text_align(text_current_speed, LV_TEXT_ALIGN_CENTER,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_x(text_current_speed, 10);
-    lv_obj_set_y(text_current_speed, 29);
-    lv_label_set_text(text_current_speed, "-");
+    lv_obj_set_y(text_current_speed, 40);
+    lv_label_set_text(text_current_speed, "50");
     lv_obj_set_style_text_color(text_current_speed, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_current_speed, 255,
@@ -123,10 +123,10 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t* text_kms = lv_label_create(page_view);
-    lv_obj_set_width(text_kms, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_kms, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_width(text_kms, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_kms, LV_SIZE_CONTENT);  
     lv_obj_set_x(text_kms, 143);
-    lv_obj_set_y(text_kms, 82);
+    lv_obj_set_y(text_kms, 104);
     lv_label_set_text(text_kms, "KM/h");
     lv_obj_set_style_text_color(text_kms, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -135,11 +135,11 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     LV_STATE_DEFAULT);
 
     text_run_timeinfo = lv_label_create(page_view);
-    lv_obj_set_width(text_run_timeinfo, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_run_timeinfo, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_width(text_run_timeinfo, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_run_timeinfo, LV_SIZE_CONTENT);  
     lv_obj_set_x(text_run_timeinfo, 13);
-    lv_obj_set_y(text_run_timeinfo, 118);
-    lv_label_set_text(text_run_timeinfo, "");
+    lv_obj_set_y(text_run_timeinfo, 137);
+    lv_label_set_text(text_run_timeinfo, "时长：12小时05分06秒");
     lv_obj_set_style_text_color(text_run_timeinfo, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_run_timeinfo, 255,
@@ -148,10 +148,10 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     LV_PART_MAIN | LV_STATE_DEFAULT);
 
     text_speed_max = lv_label_create(page_view);
-    lv_obj_set_width(text_speed_max, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_speed_max, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_width(text_speed_max, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_speed_max, LV_SIZE_CONTENT);  
     lv_obj_set_x(text_speed_max, 14);
-    lv_obj_set_y(text_speed_max, 159);
+    lv_obj_set_y(text_speed_max, 189);
     lv_label_set_text(text_speed_max, "最大(Max): 0km/s");
     lv_obj_set_style_text_color(text_speed_max, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -161,10 +161,10 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     | LV_STATE_DEFAULT);
 
     text_speed_avg = lv_label_create(page_view);
-    lv_obj_set_width(text_speed_avg, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_speed_avg, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_width(text_speed_avg, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_speed_avg, LV_SIZE_CONTENT);  
     lv_obj_set_x(text_speed_avg, 14);
-    lv_obj_set_y(text_speed_avg, 182);
+    lv_obj_set_y(text_speed_avg, 212);
     lv_label_set_text(text_speed_avg, "平均(Avg): 0km/s");
     lv_obj_set_style_text_color(text_speed_avg, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -174,10 +174,10 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     | LV_STATE_DEFAULT);
 
     text_speed_sum = lv_label_create(page_view);
-    lv_obj_set_width(text_speed_sum, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_speed_sum, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_width(text_speed_sum, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_speed_sum, LV_SIZE_CONTENT);  
     lv_obj_set_x(text_speed_sum, 14);
-    lv_obj_set_y(text_speed_sum, 205);
+    lv_obj_set_y(text_speed_sum, 235);
     lv_label_set_text(text_speed_sum, "里程(Sum): 0km");
     lv_obj_set_style_text_color(text_speed_sum, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -187,11 +187,11 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     | LV_STATE_DEFAULT);
 
     text_sensor_temp = lv_label_create(page_view);
-    lv_obj_set_width(text_sensor_temp, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_sensor_temp, LV_SIZE_CONTENT);  /// 1
-    lv_obj_set_x(text_sensor_temp, 190);
-    lv_obj_set_y(text_sensor_temp, 182);
-    lv_label_set_text(text_sensor_temp, "-度");
+    lv_obj_set_width(text_sensor_temp, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_sensor_temp, LV_SIZE_CONTENT);  
+    lv_obj_set_x(text_sensor_temp, 188);
+    lv_obj_set_y(text_sensor_temp, 212);
+    lv_label_set_text(text_sensor_temp, "23.3度");
     lv_obj_set_style_text_color(text_sensor_temp, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_sensor_temp, 255,
@@ -200,11 +200,11 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     LV_PART_MAIN | LV_STATE_DEFAULT);
 
     text_sensor_humidity = lv_label_create(page_view);
-    lv_obj_set_width(text_sensor_humidity, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(text_sensor_humidity, LV_SIZE_CONTENT);  /// 1
+    lv_obj_set_width(text_sensor_humidity, LV_SIZE_CONTENT);   
+    lv_obj_set_height(text_sensor_humidity, LV_SIZE_CONTENT);  
     lv_obj_set_x(text_sensor_humidity, 190);
-    lv_obj_set_y(text_sensor_humidity, 210);
-    lv_label_set_text(text_sensor_humidity, "-%");
+    lv_obj_set_y(text_sensor_humidity, 240);
+    lv_label_set_text(text_sensor_humidity, "46.4%");
     lv_obj_set_style_text_color(text_sensor_humidity, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_sensor_humidity, 255,
@@ -213,13 +213,13 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     LV_PART_MAIN | LV_STATE_DEFAULT);
 
     icon_control_state = lv_img_create(page_view);
-    lv_img_set_src(icon_control_state, "S:/img/icon-record-start.bin");
-    lv_obj_set_width(icon_control_state, LV_SIZE_CONTENT);   /// 1
-    lv_obj_set_height(icon_control_state, LV_SIZE_CONTENT);  /// 1
-    lv_obj_set_x(icon_control_state, 204);
-    lv_obj_set_y(icon_control_state, 35);
-    lv_obj_add_flag(icon_control_state, LV_OBJ_FLAG_ADV_HITTEST);   /// Flags
-    lv_obj_clear_flag(icon_control_state, LV_OBJ_FLAG_SCROLLABLE);  /// Flags
+    lv_img_set_src(icon_control_state, "S:/img/record_start.bin");
+    lv_obj_set_width(icon_control_state, LV_SIZE_CONTENT);  
+    lv_obj_set_height(icon_control_state, LV_SIZE_CONTENT);  
+    lv_obj_set_x(icon_control_state, 202);
+    lv_obj_set_y(icon_control_state, 39);
+    lv_obj_add_flag(icon_control_state, LV_OBJ_FLAG_ADV_HITTEST);   
+    lv_obj_clear_flag(icon_control_state, LV_OBJ_FLAG_SCROLLABLE);  
 }
 
 static void on_event_data_change(void* sub, bus_msg_t* msg) {
@@ -269,7 +269,7 @@ static void on_event_data_change(void* sub, bus_msg_t* msg) {
 static void on_event_battery(void* sub, bus_msg_t* msg) {
     app_battery_t* battery = msg->payload;
     // 电量
-    lv_label_set_text_fmt(text_battery, "%d%%", battery->level);
+    lv_label_set_text_fmt(text_battery, "%f%%", battery->level);
     if (battery->is_charge) {
         // 正在充电
         lv_obj_set_style_text_color(text_battery, lv_color_hex(0x59EE71), 0);
@@ -280,9 +280,9 @@ static void on_event_battery(void* sub, bus_msg_t* msg) {
         // 切换充电图标
         if (icon_battery_charge == NULL) {
             icon_battery_charge = lv_img_create(page_view);
-            lv_img_set_src(icon_battery_charge, "S:/img/icon-charge.bin");
-            lv_obj_set_width(icon_battery_charge, LV_SIZE_CONTENT);   /// 1
-            lv_obj_set_height(icon_battery_charge, LV_SIZE_CONTENT);  /// 1
+            lv_img_set_src(icon_battery_charge, "S:/img/battery.bin");
+            lv_obj_set_width(icon_battery_charge, LV_SIZE_CONTENT);   
+            lv_obj_set_height(icon_battery_charge, LV_SIZE_CONTENT);  
             lv_obj_set_x(icon_battery_charge, 208);
             lv_obj_set_y(icon_battery_charge, 8);
             lv_obj_clear_flag(icon_battery_charge, LV_OBJ_FLAG_SCROLLABLE);
@@ -321,10 +321,10 @@ static void on_event_env_change(void* sub, bus_msg_t* msg) {
 }
 static void on_event_record_start(void* sub, bus_msg_t* msg) {
     lv_label_set_text(text_run_timeinfo, "0秒");
-    lv_img_set_src(icon_control_state, "S:/img/icon-record-stop.bin");
+    lv_img_set_src(icon_control_state, "S:/img/record_stop.bin");
 }
 static void on_event_record_stop(void* sub, bus_msg_t* msg) {
-    lv_img_set_src(icon_control_state, "S:/img/icon-record-start.bin");
+    lv_img_set_src(icon_control_state, "S:/img/record_start.bin");
 }
 static void on_event_button(void* sub, bus_msg_t* msg) {
     app_btn_pck* key = msg->payload;

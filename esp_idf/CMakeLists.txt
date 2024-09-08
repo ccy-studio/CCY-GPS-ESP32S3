@@ -7,6 +7,8 @@ cmake_minimum_required(VERSION 3.16)
 #声明需要扫描搜索的外部组件
 set(EXTRA_COMPONENT_DIRS "../libs/")
 
+# add_compile_definitions(BUS_TYPE_FREERTOS)
+
 include($ENV{IDF_PATH}/tools/cmake/project.cmake)
 project(saisiawa_gps_esp32s3)
 

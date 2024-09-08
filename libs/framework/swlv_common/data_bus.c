@@ -1,6 +1,14 @@
 ﻿#include "data_bus.h"
-#include "stdlib.h"
 #include <string.h>
+#include "stdlib.h"
+#ifdef BUS_TYPE_FREERTOS
+#include "freertos/FreeRTOS.h"
+#include "freertos/queue.h"
+#endif
+
+#ifdef BUS_TYPE_FREERTOS
+QueueHandle_t data_bus_queue;
+#endif
 
 typedef struct _bus_desc_t bus_desc_t;
 
@@ -18,8 +26,9 @@ static uint8_t bus_cnt = 0;
 /* 记录当前骑行的行驶数据 */
 app_real_record_t current_real_record;
 
-
-void* bus_register_subscribe(bus_event event, bus_msg_subscribe_cb_t cb, void* user_data) {
+void* bus_register_subscribe(bus_event event,
+                             bus_msg_subscribe_cb_t cb,
+                             void* user_data) {
     if (cb == NULL) {
         printf("Error: bus_register_subscribe cb is not null\n");
         return NULL;
@@ -52,7 +61,6 @@ void* bus_register_subscribe(bus_event event, bus_msg_subscribe_cb_t cb, void* u
     return new_desc;
 }
 
-
 void bus_unregister_subscribe(void* subscribe) {
     if (subscribe == NULL || bus_root == NULL) {
         return;
@@ -67,7 +75,7 @@ void bus_unregister_subscribe(void* subscribe) {
     bus_desc_t* temp = bus_root;
     while (temp != NULL) {
         if (temp == subscribe) {
-            //Found it
+            // Found it
             bus_desc_t* next = temp->next;
             bus_desc_t* pre = temp->pre;
             if (next != NULL) {
@@ -88,7 +96,14 @@ void bus_unregister_subscribe(void* subscribe) {
     bus_cnt--;
 }
 
+/**
+ * 通用方法
+ */
 void bus_send(bus_event event, void* payload) {
+#ifdef BUS_TYPE_FREERTOS
+    bus_msg_t msg_q = {.id = event, .payload = payload};
+    xQueueSend(data_bus_queue, &msg_q, portMAX_DELAY);
+#endif
     if (bus_root == NULL) {
         return;
     }
@@ -96,7 +111,7 @@ void bus_send(bus_event event, void* payload) {
     bus_desc_t** arr = NULL;
     uint8_t cnt = 0;
     while (temp != NULL) {
-        if (temp->id == event && temp->callback != NULL) {
+        if ((temp->id & event) == event && temp->callback != NULL) {
             cnt++;
         }
         temp = temp->next;
@@ -110,18 +125,16 @@ void bus_send(bus_event event, void* payload) {
     memset(arr, 0, sizeof(bus_desc_t*) * cnt);
     uint8_t index = 0;
     while (temp != NULL) {
-        if (temp->id == event && temp->callback != NULL) {
+        if ((temp->id & event) == event && temp->callback != NULL) {
             arr[index++] = temp;
         }
         temp = temp->next;
     }
     for (uint8_t i = 0; i < cnt; i++) {
         if (arr[i] && arr[i] != NULL) {
-            bus_msg_t msg = {
-                .id = event,
-                .user_data = arr[i]->user_data,
-                .payload = payload
-            };
+            bus_msg_t msg = {.id = event,
+                             .user_data = arr[i]->user_data,
+                             .payload = payload};
             arr[i]->callback(arr[i], &msg);
         }
     }
@@ -142,31 +155,29 @@ void app_stop_record() {
 
 /**
  * @brief 通知-实时运行数据改变
-*/
+ */
 void notify_data_change() {
     bus_send(DATA_BUS_RECORD_CHANGE, &current_real_record);
 }
 
 /**
  * @brief 通知-关机
-*/
+ */
 void notify_power_close() {
     bus_send(DATA_BUS_POWER_EVENT, NULL);
 }
 
-
 /**
-* @brief 通知-表盘样式改变
-*/
+ * @brief 通知-表盘样式改变
+ */
 void notify_dial_change() {
     bus_send(DATA_BUS_DIAL_CHANGE, NULL);
 }
 
-
 /**
  * @brief 通知-GPS刷新时间
  * @param gps_dat
-*/
+ */
 void notify_gps_refresh(app_gps_t* gps_dat) {
     bus_send(DATA_BUS_GPS_REFRESH, gps_dat);
 }
@@ -174,7 +185,7 @@ void notify_gps_refresh(app_gps_t* gps_dat) {
 /**
  * @brief 通知-环境信息数据刷新的事件
  * @param evt_dat
-*/
+ */
 void notify_env_refresh(app_environment_t* evt_dat) {
     bus_send(DATA_BUS_ENV_REFRESH, evt_dat);
 }
@@ -183,26 +194,24 @@ void notify_button_event(app_btn_pck* btn) {
     bus_send(DATA_BUS_BUTTON_EVENT, btn);
 }
 
-
 /**
  * @brief 通知-电池电量刷新事件
  * @param battery_info
-*/
+ */
 void notify_battery_event(app_battery_t* battery_info) {
     bus_send(DATA_BUS_BATTERY_EVENT, battery_info);
 }
 
-
 #ifdef APP_TEST
 #include "lvgl/lvgl.h"
-//随机数生成测试
+// 随机数生成测试
 #include <time.h>
 static void test_timer(lv_timer_t* t) {
     static gps_cnt = 0, env_cnt = 0;
     gps_cnt++;
     env_cnt++;
     if (gps_cnt == 5) {
-        //send gps message
+        // send gps message
         app_gps_t* gps = &current_real_record.curr_gps;
         gps->sats_in_use = !gps->sats_in_use;
         int randomNumber;
@@ -217,7 +226,7 @@ static void test_timer(lv_timer_t* t) {
 
         time_t rawtime;
         struct tm* timeinfo;
-        time(&rawtime);  // 获取当前时间
+        time(&rawtime);                  // 获取当前时间
         timeinfo = localtime(&rawtime);  // 将时间转换为本地时间
         current_real_record.curr_gps.datetime.hour = timeinfo->tm_hour;
         current_real_record.curr_gps.datetime.minute = timeinfo->tm_min;
@@ -230,7 +239,7 @@ static void test_timer(lv_timer_t* t) {
         notify_gps_refresh(gps);
     }
     if (env_cnt == 10) {
-        //send env message
+        // send env message
         static app_environment_t env_t;
         int randomNumber;
         randomNumber = (rand() % 25) + 1;
@@ -240,10 +249,7 @@ static void test_timer(lv_timer_t* t) {
 
         notify_env_refresh(&env_t);
 
-        static app_battery_t battery = {
-         .is_charge = false,
-         .level = 98
-        };
+        static app_battery_t battery = {.is_charge = false, .level = 98};
         notify_battery_event(&battery);
         env_cnt = 0;
     }
@@ -255,4 +261,4 @@ void bus_test_msg() {
     app_start_record();
 }
 
-#endif // APP_TEST
+#endif  // APP_TEST

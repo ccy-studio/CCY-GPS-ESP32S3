@@ -6,6 +6,8 @@ extern "C" {
 
 #include "app_config.h"
 
+// #define BUS_TYPE_FREERTOS  /** RTOS队列模式 */
+
 /* 定义DataBus数据类型 */
 #define DATA_BUS_RECORD_STOP 0x01   /*骑行结束*/
 #define DATA_BUS_RECORD_START 0x02  /*骑行开始*/
@@ -24,6 +26,10 @@ typedef struct {
     void* user_data;
     const void* payload;
 } bus_msg_t;
+
+#ifdef BUS_TYPE_FREERTOS
+extern QueueHandle_t data_bus_queue;
+#endif
 
 typedef void (*bus_msg_subscribe_cb_t)(void* subscribe, bus_msg_t* msg);
 

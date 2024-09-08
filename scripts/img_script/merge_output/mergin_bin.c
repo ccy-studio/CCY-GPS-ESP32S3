@@ -2,74 +2,74 @@
 
 struct mergin_bin_t bin_infos[] = {
 	{ 
-		.item_name = "dark-dial.bin",
+		.item_name = "battery.bin",
 		.start_address = 0,
-		.end_address = 115212 
+		.end_address = 812 
 	},
 	{ 
-		.item_name = "icon-charge.bin",
-		.start_address = 115212,
-		.end_address = 115864 
+		.item_name = "dark_style_bg.bin",
+		.start_address = 812,
+		.end_address = 135224 
 	},
 	{ 
-		.item_name = "icon-gps.bin",
-		.start_address = 115864,
-		.end_address = 116636 
+		.item_name = "gps.bin",
+		.start_address = 135224,
+		.end_address = 135748 
 	},
 	{ 
-		.item_name = "icon-record-start.bin",
-		.start_address = 116636,
-		.end_address = 118515 
+		.item_name = "power.bin",
+		.start_address = 135748,
+		.end_address = 136560 
 	},
 	{ 
-		.item_name = "icon-record-stop.bin",
-		.start_address = 118515,
-		.end_address = 120394 
+		.item_name = "record_start.bin",
+		.start_address = 136560,
+		.end_address = 137822 
 	},
 	{ 
-		.item_name = "icon-s-about.bin",
-		.start_address = 120394,
-		.end_address = 121598 
+		.item_name = "record_stop.bin",
+		.start_address = 137822,
+		.end_address = 139084 
 	},
 	{ 
-		.item_name = "icon-s-dial.bin",
-		.start_address = 121598,
-		.end_address = 122802 
+		.item_name = "setting.bin",
+		.start_address = 139084,
+		.end_address = 140248 
 	},
 	{ 
-		.item_name = "icon-s-gps.bin",
-		.start_address = 122802,
-		.end_address = 124006 
+		.item_name = "set_active.bin",
+		.start_address = 140248,
+		.end_address = 141060 
 	},
 	{ 
-		.item_name = "icon-s-ok.bin",
-		.start_address = 124006,
-		.end_address = 125210 
+		.item_name = "set_gps.bin",
+		.start_address = 141060,
+		.end_address = 141872 
 	},
 	{ 
-		.item_name = "icon-s-power.bin",
-		.start_address = 125210,
-		.end_address = 126414 
+		.item_name = "set_info.bin",
+		.start_address = 141872,
+		.end_address = 142684 
 	},
 	{ 
-		.item_name = "icon-s-right.bin",
-		.start_address = 126414,
-		.end_address = 127618 
+		.item_name = "set_log.bin",
+		.start_address = 142684,
+		.end_address = 143496 
 	},
 	{ 
-		.item_name = "icon-s-run-log.bin",
-		.start_address = 127618,
-		.end_address = 128822 
+		.item_name = "set_ok.bin",
+		.start_address = 143496,
+		.end_address = 144308 
 	},
 	{ 
-		.item_name = "icon-s-sleep.bin",
-		.start_address = 128822,
-		.end_address = 130026 
+		.item_name = "set_sleep.bin",
+		.start_address = 144308,
+		.end_address = 145120 
 	},
 	{ 
-		.item_name = "icon_setting.bin",
-		.start_address = 130026,
-		.end_address = 131758 
+		.item_name = "set_style.bin",
+		.start_address = 145120,
+		.end_address = 145932 
 	},
 };
 size_t bin_infos_len = 14;

@@ -1,5 +1,6 @@
 import os
 import fnmatch
+import shutil
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
 output_dir = os.path.normpath(os.path.join(current_dir, "output"))
@@ -17,6 +18,8 @@ config = {
 
 
 def main():
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
     for root, dirs, files in os.walk(images_dir):
         for filename in files:
             if any(fnmatch.fnmatch(filename, ext) for ext in image_extensions):

@@ -23,10 +23,11 @@
 #include "freertos/task.h"
 #include "sdkconfig.h"
 // #include "ui.h"
+#include "./include/interface_impl.h"
+#include "data_bus.h"
 #include "lv_demos.h"
 #include "lv_examples.h"
 #include "lvgl.h"
-#include "./include/interface_impl.h"
 
 /**
  * 屏幕的尺寸
@@ -36,7 +37,46 @@
 
 #define BYTE_PER_PIXEL (LV_COLOR_FORMAT_GET_SIZE(LV_COLOR_FORMAT_RGB565))
 
+static lv_obj_t* battery;
+static lv_obj_t* time_obj;
+static lv_obj_t* gps;
+static lv_obj_t* env;
+
 static lv_display_t* hal_init(int32_t w, int32_t h);
+
+static app_battery_t battery_dat;
+static app_environment_t env_dat;
+static app_gps_t gps_dat;
+
+void refresh_async_cb(void* params) {
+    lv_label_set_text_fmt(battery, "SOC:%.2f%%,Charge: %d", battery_dat.level,
+                          battery_dat.is_charge);
+
+    lv_label_set_text_fmt(env, "Temp:%.2f,Hum: %.2f", env_dat.temp,
+                          env_dat.humidity);
+
+    lv_label_set_text_fmt(time_obj, "%d-%d-%d %d:%d:%d", gps_dat.datetime.year,
+                          gps_dat.datetime.month, gps_dat.datetime.day,
+                          gps_dat.datetime.hour, gps_dat.datetime.minute,
+                          gps_dat.datetime.second);
+    lv_label_set_text_fmt(gps, "lat:%.2lf\nlng:%.2lf\nspeed:%.2lf\nstate:%d",
+                          gps_dat.latitude, gps_dat.longitude, gps_dat.speed,
+                          gps_dat.sats_in_use);
+}
+
+void bus_event_cb(void* subscribe, bus_msg_t* msg) {
+    if (msg == NULL || msg->payload == NULL) {
+        return;
+    }
+    if (msg->id == DATA_BUS_BATTERY_EVENT) {
+        memcpy(&battery_dat, msg->payload, sizeof(app_battery_t));
+    } else if (msg->id == DATA_BUS_ENV_REFRESH) {
+        memcpy(&env_dat, msg->payload, sizeof(app_environment_t));
+    } else if (msg->id == DATA_BUS_GPS_REFRESH) {
+        memcpy(&gps_dat, msg->payload, sizeof(app_gps_t));
+    }
+    lv_async_call(refresh_async_cb, NULL);
+}
 
 static void test_ui() {
     lv_disp_t* dispp = lv_disp_get_default();
@@ -49,52 +89,36 @@ static void test_ui() {
     lv_obj_clear_flag(scr, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_color(scr, lv_color_black(), LV_PART_MAIN);
 
-    lv_obj_t* product = lv_label_create(scr);
-    lv_obj_set_width(product, LV_SIZE_CONTENT);
-    lv_obj_set_height(product, LV_SIZE_CONTENT);
-    lv_obj_center(product);
-    lv_label_set_text(product, "Saisaiwa");
-    lv_obj_set_style_text_color(product, lv_color_hex(0xfb8b05), LV_PART_MAIN);
+    gps = lv_label_create(scr);
+    lv_obj_set_width(gps, LV_SIZE_CONTENT);
+    lv_obj_set_height(gps, LV_SIZE_CONTENT);
+    lv_obj_center(gps);
+    lv_label_set_text(gps, "-");
+    lv_obj_set_style_text_color(gps, lv_color_hex(0xfb8b05), LV_PART_MAIN);
 
-    lv_obj_t* text = lv_label_create(scr);
-    lv_obj_set_width(text, LV_SIZE_CONTENT);
-    lv_obj_set_height(text, LV_SIZE_CONTENT);
-    lv_obj_set_pos(text, 0, 0);
-    lv_label_set_text_fmt(text, "LeftPoint");
-    lv_obj_set_style_text_color(text, lv_color_hex(0x1ba784), LV_PART_MAIN);
+    battery = lv_label_create(scr);
+    lv_obj_set_width(battery, LV_SIZE_CONTENT);
+    lv_obj_set_height(battery, LV_SIZE_CONTENT);
+    lv_obj_align(battery, LV_ALIGN_TOP_RIGHT, -50, 20);
+    lv_obj_set_style_text_color(battery, lv_color_hex(0x1ba784), LV_PART_MAIN);
 
-    text = lv_label_create(scr);
-    lv_obj_set_width(text, LV_SIZE_CONTENT);
-    lv_obj_set_height(text, LV_SIZE_CONTENT);
-    lv_obj_set_pos(text, lv_disp_get_hor_res(dispp) - 28,
-                   lv_disp_get_ver_res(dispp) / 2);
-    lv_label_set_text_fmt(text, "RightPoint");
-    lv_obj_set_style_text_color(text, lv_color_hex(0x1ba784), LV_PART_MAIN);
+    time_obj = lv_label_create(scr);
+    lv_obj_set_width(time_obj, LV_SIZE_CONTENT);
+    lv_obj_set_height(time_obj, LV_SIZE_CONTENT);
+    lv_obj_align(time_obj, LV_ALIGN_TOP_LEFT, 5, 40);
+    lv_obj_set_style_text_color(time_obj, lv_color_hex(0x1ba784), LV_PART_MAIN);
+
+    env = lv_label_create(scr);
+    lv_obj_set_width(env, LV_SIZE_CONTENT);
+    lv_obj_set_height(env, LV_SIZE_CONTENT);
+    lv_obj_align(env, LV_ALIGN_BOTTOM_LEFT, 10, -50);
+    lv_obj_set_style_text_color(env, lv_color_hex(0x1ba784), LV_PART_MAIN);
 
     lv_scr_load_anim(scr, LV_SCR_LOAD_ANIM_NONE, 0, 0, false);
-}
 
-
-/**
- * https://github.com/mikalhart/TinyGPSPlus/blob/master/examples/FullExample/FullExample.ino
- */
-static void gps_thread(void* params) {
-    Serial1.begin(9600, SERIAL_8N1, IO_GPS_RX, IO_GPS_TX);
-    delay(1000);
-    size_t len = sizeof(char) * 50;
-    char* buf = (char*)heap_caps_malloc(len, MALLOC_CAP_SPIRAM);
-    size_t i = 0;
-    while (1) {
-        vTaskDelay(pdMS_TO_TICKS(100));
-        memset(buf, 0, len);
-        i = 0;
-        if (Serial1.available()) {
-            Serial1.read(buf + i, 1);
-            i++;
-        }
-        printf(buf);
-    }
-    heap_caps_free(buf);
+    bus_register_subscribe(
+        DATA_BUS_BATTERY_EVENT | DATA_BUS_ENV_REFRESH | DATA_BUS_GPS_REFRESH,
+        bus_event_cb, NULL);
 }
 
 extern "C" void app_main(void) {
@@ -133,22 +157,18 @@ extern "C" void app_main(void) {
     pinMode(IO_POWER_EN_PIN, OUTPUT);
     digitalWrite(IO_POWER_EN_PIN, 1);
 
-
     printf("====>>Initialize Interface");
-    
 
     printf("=====>>>> initialize lvgl....\n");
-    // lv_init();
-    // hal_init(240, 240);
+    lv_init();
+    hal_init(240, 240);
 
     printf("=====>>>> launch ui pages\n");
     // ui_init_and_start();
     // lv_demo_widgets();
     // lv_demo_widgets_start_slideshow();
 
-    // test_ui();
-
-    // xTaskCreate(gps_thread, "GPS", 4096, NULL, 1, NULL);
+    test_ui();
     interface_initialize();
 
     while (1) {
@@ -160,7 +180,9 @@ extern "C" void app_main(void) {
 /**
  * 外部输入事件
  */
-static void hal_button_indev_cb(lv_indev_t* indev, lv_indev_data_t* data) {}
+static void hal_button_indev_cb(lv_indev_t* indev, lv_indev_data_t* data) {
+    data->state = LV_INDEV_STATE_RELEASED;
+}
 
 static lv_display_t* hal_init(int32_t w, int32_t h) {
     // LVGL 需要系统滴答来了解动画和其他任务的经过时间。
@@ -175,7 +197,7 @@ static lv_display_t* hal_init(int32_t w, int32_t h) {
 
     lv_indev_t* indev = lv_indev_create(); /*Create an input device*/
     lv_indev_set_type(
-        indev, LV_INDEV_TYPE_BUTTON); /*Touch pad is a pointer-like device*/
+        indev, LV_INDEV_TYPE_NONE); /*Touch pad is a pointer-like device*/
     lv_indev_set_read_cb(indev, hal_button_indev_cb);
 
     lv_indev_set_display(indev, display);

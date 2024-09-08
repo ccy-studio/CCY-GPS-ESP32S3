@@ -58,7 +58,7 @@ extern "C" {
      * @brief 电池电量信息
     */
     typedef struct {
-        uint8_t level; //剩余电量百分比 0~100%
+        float level; //剩余电量百分比 0~100%
         bool is_charge; //是否在充电
     } app_battery_t;
 
@@ -90,10 +90,10 @@ extern "C" {
     /*GPS定位信息*/
     typedef struct {
         _app_gps_datetime_t datetime;
-        float latitude;                                                /*!< Latitude (degrees) */
-        float longitude;                                               /*!< Longitude (degrees) */
-        float altitude;                                                /*!< Altitude (meters) */
-        float speed;                                                   /*!< Ground speed, unit: m/s */
+        double latitude;                                                /*!< Latitude (degrees) */
+        double longitude;                                               /*!< Longitude (degrees) */
+        double altitude;                                                /*!< Altitude (meters) */
+        double speed;                                                   /*!< Ground speed, unit: m/s */
         uint8_t sats_in_use;                                           /*!< Number of satellites in use */
     }app_gps_t;
 

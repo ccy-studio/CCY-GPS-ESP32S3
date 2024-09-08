@@ -10,4 +10,6 @@
 #define IO_I2C_SCL 11
 #define IO_I2C_SDA 10
 
+#define IO_BQ_CHARGE 13
+
 #endif

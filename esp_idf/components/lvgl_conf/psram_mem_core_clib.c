@@ -33,7 +33,9 @@ void* lv_realloc_core(void* p, size_t new_size) {
 }
 
 void lv_free_core(void* p) {
-    heap_caps_free(p);
+    if (p != NULL) {
+        heap_caps_free(p);
+    }
 }
 
 void lv_mem_monitor_core(lv_mem_monitor_t* mon_p) {

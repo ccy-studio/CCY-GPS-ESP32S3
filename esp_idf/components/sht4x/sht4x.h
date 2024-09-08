@@ -5,162 +5,159 @@
 #include "Arduino.h"
 #include "Wire.h"
 
-#define SENSIRION_WORD_SIZE 2
-#define SENSIRION_NUM_WORDS(x) (sizeof(x) / SENSIRION_WORD_SIZE)
-
 class SHT4X {
     enum class REG {
         SHT4X_CMD_MEASURE_HPM = 0xFD,
         SHT4X_CMD_MEASURE_LPM = 0xE0,
         SHT4X_CMD_READ_SERIAL = 0x89,
-        SHT4X_CMD_DURATION_USEC = 1000,
-        SHT4X_ADDRESS = 0x44,
-        SHT4X_MEASUREMENT_DURATION_USEC = 10000,
-        SHT4X_MEASUREMENT_DURATION_LPM_USEC = 2500
+        SHT4X_ADDRESS = 0x44
     };
 
     uint8_t sht4x_cmd_measure = (uint8_t)REG::SHT4X_CMD_MEASURE_HPM;
-    uint16_t sht4x_cmd_measure_delay_us =
-        (uint16_t)REG::SHT4X_MEASUREMENT_DURATION_USEC;
+    uint16_t sht4x_cmd_measure_delay_us = 10;
 
    private:
     TwoWire* wire;
-    int8_t sensirion_i2c_read(uint8_t address, uint8_t* data, uint16_t count) {
-        uint8_t readData[count];
-        uint8_t rxByteCount = 0;
 
-        // 2 bytes RH, 1 CRC, 2 bytes T, 1 CRC
-        wire->requestFrom(address, count);
-
-        while (wire->available()) {  // wait till all arrive
-            readData[rxByteCount++] = wire->read();
-            if (rxByteCount >= count)
-                break;
-        }
-
-        memcpy(data, readData, count);
-
-        return 0;
-    }
-
-    int8_t sensirion_i2c_write(uint8_t address, uint8_t* data, uint16_t count) {
-        wire->beginTransmission(address);
+    int8_t sensirion_i2c_write(uint8_t* data,
+                               uint16_t count,
+                               bool stop = true) {
+        wire->beginTransmission((uint8_t)REG::SHT4X_ADDRESS);
         wire->write(data, count);
-        wire->endTransmission(1);
+        wire->endTransmission(stop);
         return 0;
     }
 
-    void sensirion_sleep_usec(uint32_t useconds) {
-        delay((useconds / 1000) + 1);
-    }
-
-    int16_t sensirion_i2c_read_words(uint8_t address,
-                                     uint16_t* data_words,
-                                     uint16_t num_words) {
+    bool sensirion_i2c_read_words(uint8_t* buffer,
+                                  size_t len,
+                                  bool stop = true) {
         // 检查数据指针是否有效
-        if (data_words == NULL || num_words == 0) {
+        if (buffer == NULL || len == 0) {
             return -1;  // 返回错误代码
         }
-
-        // 请求读取 num_words * 2 字节的数据
-        wire->beginTransmission(address);
-        wire->endTransmission();  // 结束传输以准备读取
-
-        // 请求数据
-        wire->requestFrom(address, num_words * 2);  // 每个 uint16_t 需要 2 字节
-
-        // 检查接收到的数据字节数
-        if (wire->available() < num_words * 2) {
-            return -2;  // 返回错误代码，表示接收到的数据不足
+        static uint8_t max_buf_size = 128;
+        size_t pos = 0;
+        while (pos < len) {
+            size_t read_len =
+                ((len - pos) > max_buf_size) ? max_buf_size : (len - pos);
+            bool read_stop = (pos < (len - read_len)) ? false : stop;
+            if (!_read(buffer + pos, read_len, read_stop))
+                return false;
+            pos += read_len;
         }
+        return true;
+    }
 
-        // 读取数据
-        for (uint16_t i = 0; i < num_words; i++) {
-            // 读取低字节
-            uint8_t lowByte = wire->read();
-            // 读取高字节
-            uint8_t highByte = wire->read();
-
-            // 合并低字节和高字节
-            data_words[i] =
-                (highByte << 8) | lowByte;  // 高字节在前，低字节在后
+    bool _read(uint8_t* buffer, size_t len, bool stop) {
+        size_t recv = wire->requestFrom((uint8_t)REG::SHT4X_ADDRESS,
+                                        (uint8_t)len, (uint8_t)stop);
+        if (recv != len) {
+            return false;
         }
+        for (uint16_t i = 0; i < len; i++) {
+            buffer[i] = wire->read();
+        }
+        return true;
+    }
 
-        return num_words;  // 返回成功读取的字数
+    uint8_t crc8(const uint8_t* data, int len) {
+        /*
+         *
+         * CRC-8 formula from page 14 of SHT spec pdf
+         *
+         * Test data 0xBE, 0xEF should yield 0x92
+         *
+         * Initialization data 0xFF
+         * Polynomial 0x31 (x8 + x5 +x4 +1)
+         * Final XOR 0x00
+         */
+
+        const uint8_t POLYNOMIAL(0x31);
+        uint8_t crc(0xFF);
+
+        for (int j = len; j; --j) {
+            crc ^= *data++;
+
+            for (int i = 8; i; --i) {
+                crc = (crc & 0x80) ? (crc << 1) ^ POLYNOMIAL : (crc << 1);
+            }
+        }
+        return crc;
     }
 
    public:
     void begin(TwoWire& w) { wire = &w; }
 
-    int16_t sht4x_measure_blocking_read(int32_t* temperature,
-                                        int32_t* humidity) {
-        int16_t ret;
-
-        ret = sht4x_measure();
-        if (ret)
-            return ret;
-        // sensirion_sleep_usec(sht4x_cmd_measure_delay_us);
-        delay(10);
+    bool sht4x_measure_blocking_read(float* temperature, float* humidity) {
+        sht4x_measure();
+        delay(sht4x_cmd_measure_delay_us);
         return sht4x_read(temperature, humidity);
     }
 
     int16_t sht4x_measure(void) {
-        uint8_t buf[1] = {sht4x_cmd_measure};
-        return sensirion_i2c_write((uint8_t)REG::SHT4X_ADDRESS, buf, 1);
+        return sensirion_i2c_write(&sht4x_cmd_measure, 1);
     }
 
-    int16_t sht4x_read(int32_t* temperature, int32_t* humidity) {
-        uint16_t words[2];
-        int16_t ret = sensirion_i2c_read_words(
-            (uint8_t)REG::SHT4X_ADDRESS, words, SENSIRION_NUM_WORDS(words));
+    bool sht4x_read(float* temperature, float* humidity) {
+        uint8_t readbuffer[6];
+        if (!sensirion_i2c_read_words(readbuffer, 6)) {
+            return false;
+        }
 
-        /**
-         * formulas for conversion of the sensor signals, optimized for fixed
-         * point algebra: Temperature = 175 * S_T / 65535 - 45 Relative
-         Humidity
-         * = 125 * (S_RH / 65535) - 6
-         */
-        *temperature = ((21875 * (int32_t)words[0]) >> 13) - 45000;
-        *humidity = ((15625 * (int32_t)words[1]) >> 13) - 6000;
+        if (readbuffer[2] != crc8(readbuffer, 2) ||
+            readbuffer[5] != crc8(readbuffer + 3, 2)) {
+            return false;
+        }
 
-        return ret;
+        float t_ticks = (uint16_t)readbuffer[0] * 256 + (uint16_t)readbuffer[1];
+        float rh_ticks =
+            (uint16_t)readbuffer[3] * 256 + (uint16_t)readbuffer[4];
+        *temperature = -45 + 175 * t_ticks / 65535;
+        *humidity = -6 + 125 * rh_ticks / 65535;
+        *humidity = min(max(*humidity, (float)0.0), (float)100.0);
+
+        return true;
     }
 
-    int16_t sht4x_probe() {
+    uint32_t sht4x_probe() {
         uint32_t serial;
-        uint16_t ret = sht4x_read_serial(&serial);
-        printf("SHT4X Serial = %lX\n", serial);
-        return ret;
+        sht4x_read_serial(&serial);
+        return serial;
     }
 
     void sht4x_enable_low_power_mode(uint8_t enable_low_power_mode) {
         if (enable_low_power_mode) {
             sht4x_cmd_measure = (uint8_t)REG::SHT4X_CMD_MEASURE_LPM;
-            sht4x_cmd_measure_delay_us =
-                (uint16_t)REG::SHT4X_MEASUREMENT_DURATION_LPM_USEC;
+            sht4x_cmd_measure_delay_us = 2;
         } else {
             sht4x_cmd_measure = (uint8_t)REG::SHT4X_CMD_MEASURE_HPM;
-            sht4x_cmd_measure_delay_us =
-                (uint16_t)REG::SHT4X_MEASUREMENT_DURATION_USEC;
+            sht4x_cmd_measure_delay_us = 10;
         }
     }
 
-    int16_t sht4x_read_serial(uint32_t* serial) {
-        uint8_t cmd[1] = {(uint8_t)REG::SHT4X_CMD_READ_SERIAL};
-        int16_t ret;
-        uint16_t serial_words[SENSIRION_NUM_WORDS(*serial)];
+    void sht4x_read_serial(uint32_t* serial) {
+        *serial = 0;
+        uint8_t cmd = (uint8_t)REG::SHT4X_CMD_READ_SERIAL;
+        uint8_t reply[6];
 
-        ret = sensirion_i2c_write((uint8_t)REG::SHT4X_ADDRESS, cmd, 1);
-        if (ret)
-            return ret;
+        sensirion_i2c_write(&cmd, 1);
 
-        sensirion_sleep_usec((uint8_t)REG::SHT4X_CMD_DURATION_USEC);
-        ret =
-            sensirion_i2c_read_words((uint8_t)REG::SHT4X_ADDRESS, serial_words,
-                                     SENSIRION_NUM_WORDS(serial_words));
-        *serial = ((uint32_t)serial_words[0] << 16) | serial_words[1];
+        delay(10);
 
-        return ret;
+        if (!sensirion_i2c_read_words(reply, 6)) {
+            return;
+        }
+
+        if ((crc8(reply, 2) != reply[2]) || (crc8(reply + 3, 2) != reply[5])) {
+            return;
+        }
+        *serial = reply[0];
+        *serial <<= 8;
+        *serial |= reply[1];
+        *serial <<= 8;
+        *serial |= reply[3];
+        *serial <<= 8;
+        *serial |= reply[4];
     }
 
     uint8_t sht4x_get_configured_address(void) {

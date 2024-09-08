@@ -32,7 +32,8 @@ file(GLOB_RECURSE FONT_SOURCES ${PROJECT_SOURCE_DIR}/main/src/font/*.c)
 add_executable(main main/src/main.c main/src/mouse_cursor_icon.c main/src/local_fs_bin.c ${FONT_SOURCES})
 
 #添加BIN资源路径
-target_compile_definitions(main PRIVATE BIN_DIR="${PROJECT_SOURCE_DIR}/merge.bin")
+target_compile_definitions(main PRIVATE BIN_DIR="${PROJECT_SOURCE_DIR}/../scripts/img_script/merge_output/merge.bin")
+
 target_compile_definitions(main PRIVATE LV_CONF_INCLUDE_SIMPLE)
 target_compile_definitions(main PRIVATE LV_LVGL_H_INCLUDE_SIMPLE)
 target_link_libraries(main lvgl lvgl::examples lvgl::demos lvgl::thorvg framework::all ${SDL2_LIBRARIES} m pthread)
