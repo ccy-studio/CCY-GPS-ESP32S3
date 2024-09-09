@@ -29,7 +29,13 @@
 			"lv_freertos.h": "c",
 			"lv_os_none.h": "c",
 			"lv_pthread.h": "c",
-			"lv_mem.h": "c"
+			"lv_mem.h": "c",
+			"array": "c",
+			"string": "c",
+			"string_view": "c",
+			"math.h": "c",
+			"store.h": "c",
+			"lv_sdl_private.h": "c"
 		}
 	}
 }

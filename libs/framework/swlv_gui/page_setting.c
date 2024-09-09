@@ -58,7 +58,7 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_set_style_bg_opa(page_view, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
 
     lv_obj_t* ui_Image2 = lv_img_create(page_view);
-    lv_img_set_src(ui_Image2, "S:/img/icon_setting.bin");
+    lv_img_set_src(ui_Image2, "S:/img/setting.bin");
     lv_obj_set_width(ui_Image2, LV_SIZE_CONTENT);
     lv_obj_set_height(ui_Image2, LV_SIZE_CONTENT);
     lv_obj_set_x(ui_Image2, 20);
@@ -98,32 +98,32 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
 
     create_sub_page();
     lv_obj_t* cont;
-    cont = create_menu_item("表盘样式", "S:/img/icon-s-dial.bin");
+    cont = create_menu_item("表盘样式", "S:/img/set_style.bin");
     // cont->user_data = sub_page_dail;
     lv_obj_set_user_data(cont, sub_page_dail);
     lv_menu_set_load_page_event(menu, cont, sub_page_dail);
 
-    cont = create_menu_item("自动休眠", "S:/img/icon-s-sleep.bin");
+    cont = create_menu_item("自动休眠", "S:/img/set_sleep.bin");
     // cont->user_data = sub_page_sleep;
     lv_obj_set_user_data(cont, sub_page_sleep);
     lv_menu_set_load_page_event(menu, cont, sub_page_sleep);
 
-    cont = create_menu_item("骑行记录", "S:/img/icon-s-run-log.bin");
+    cont = create_menu_item("骑行记录", "S:/img/set_log.bin");
     // cont->user_data = sub_page_run_log;
     lv_obj_set_user_data(cont, sub_page_run_log);
     lv_menu_set_load_page_event(menu, cont, sub_page_run_log);
 
-    cont = create_menu_item("定位信息", "S:/img/icon-s-gps.bin");
+    cont = create_menu_item("定位信息", "S:/img/set_gps.bin");
     // cont->user_data = sub_page_gps_pos;
     lv_obj_set_user_data(cont, sub_page_gps_pos);
     lv_menu_set_load_page_event(menu, cont, sub_page_gps_pos);
 
-    cont = create_menu_item("关于本机", "S:/img/icon-s-about.bin");
+    cont = create_menu_item("关于本机", "S:/img/set_info.bin");
     // cont->user_data = sub_page_about;
     lv_obj_set_user_data(cont, sub_page_about);
     lv_menu_set_load_page_event(menu, cont, sub_page_about);
 
-    cont = create_menu_item("关机", "S:/img/icon-s-power.bin");
+    cont = create_menu_item("关机", "S:/img/power.bin");
     lv_obj_add_event_cb(cont, on_power_close, LV_EVENT_CLICKED, NULL);
 
     lv_menu_set_page(menu, menu_main);
@@ -364,7 +364,7 @@ static lv_obj_t* create_select_item(const char* text, lv_obj_t* cont) {
     lv_label_set_text(label, text);
     // 添加选中图标
     lv_obj_t* img = lv_img_create(btn);
-    lv_img_set_src(img, "S:/img/icon-s-ok.bin");
+    lv_img_set_src(img, "S:/img/set_ok.bin");
     lv_obj_set_height(img, 0);
     lv_obj_align(img, LV_ALIGN_RIGHT_MID, 0, 0);
     lv_obj_add_event_cb(btn, on_menu_item_selected_envent, LV_EVENT_FOCUSED,
@@ -400,12 +400,14 @@ static lv_obj_t* create_menu_item(const char* text, const char* icon_path) {
     label = lv_label_create(cont);
     lv_obj_set_size(label, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_label_set_text(label, text);
+    lv_obj_set_style_text_font(label, &font_douyin_16,
+                               LV_PART_MAIN | LV_STATE_DEFAULT);
     // 添加Flex占位组件
     lv_obj_t* seat = lv_obj_create(cont);
     lv_obj_set_size(seat, 40, 0);
     // 添加箭头
     lv_obj_t* img = lv_img_create(cont);
-    lv_img_set_src(img, "S:/img/icon-s-right.bin");
+    lv_img_set_src(img, "S:/img/set_active.bin");
     lv_obj_set_height(img, 0);
 
     lv_obj_add_event_cb(cont, on_menu_item_click_envent, LV_EVENT_CLICKED,

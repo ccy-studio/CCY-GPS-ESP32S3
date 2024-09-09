@@ -32,7 +32,7 @@ def main():
     # 打印合并文件的信息
     for info in file_infos:
         print(
-            f"文件名: {info['file_name']}, 起始地址: {info['start_address']}, 结束地址: {info['end_address']}"
+            f"文件名: {info['file_name']}, 起始地址: {info['start_address']}, 结束地址: {info['end_address']},长度: {info['end_address']-info['start_address']}"
         )
     output_c(file_infos)
 
@@ -48,6 +48,7 @@ def output_c(file_infos):
             )
         c_file.write("};\n")
         c_file.write(f"size_t bin_infos_len = {len(file_infos)};")
+
 
 if __name__ == "__main__":
     main()

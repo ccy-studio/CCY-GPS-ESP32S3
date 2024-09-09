@@ -6,7 +6,6 @@
 #ifndef BIN_DIR
 #define BIN_DIR ""
 #endif
-
 struct mergin_bin_t bin_infos[] = {
 	{ 
 		.item_name = "battery.bin",
@@ -89,9 +88,12 @@ void* bin_open_cb(lv_fs_drv_t* drv, const char* path, lv_fs_mode_t mode) {
     fs->mode = mode;
     fs->path = path;
     fs->mergin_bin = find_bin_by_name(strrchr(path, '/') + 1);
+    if (fs->mergin_bin == NULL) {
+        return NULL;
+    }
     fs->user_data = fopen(BIN_DIR, "rb");
     if (fs->user_data == NULL) {
-        LV_LOG_ERROR("找不到/merge.bin文件打开失败");
+        lv_log("找不到/merge.bin文件打开失败");
         lv_free(fs);
         return NULL;
     }
@@ -129,7 +131,7 @@ lv_fs_res_t bin_seek_cb(lv_fs_drv_t* drv,
                    ? LV_FS_RES_UNKNOWN
                    : LV_FS_RES_OK;
     } else if (whence == LV_FS_SEEK_END) {
-        return fseek(fs->user_data, fs->mergin_bin->end_address + (pos),
+        return fseek(fs->user_data, fs->mergin_bin->end_address - pos,
                      SEEK_SET) != 0
                    ? LV_FS_RES_UNKNOWN
                    : LV_FS_RES_OK;

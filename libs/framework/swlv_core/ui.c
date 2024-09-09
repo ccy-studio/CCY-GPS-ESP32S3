@@ -287,7 +287,7 @@ void ui_init_group(ui_data_t* ui_dat) {
     if (ui_dat->group == NULL) {
         ui_dat->group = lv_group_create();
         lv_group_set_default(ui_dat->group);
-        // lv_indev_set_group(ui_base_get_indev(), ui_dat->group);
+        lv_indev_set_group(ui_base_get_indev(), ui_dat->group);
         /*     lv_group_set_editing(ui_dat->group, false);*/
     }
 }
@@ -299,7 +299,7 @@ void ui_init_group(ui_data_t* ui_dat) {
 static void ui_deinit_group(ui_data_t* ui_dat) {
     if (ui_dat->group != NULL) {
         lv_group_remove_all_objs(ui_dat->group);
-        // lv_group_del(ui_dat->group);
+        lv_group_del(ui_dat->group);
     }
 }
 
