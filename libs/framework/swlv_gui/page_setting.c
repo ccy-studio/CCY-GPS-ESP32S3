@@ -362,6 +362,8 @@ static lv_obj_t* create_select_item(const char* text, lv_obj_t* cont) {
     label = lv_label_create(btn);
     lv_obj_set_size(label, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_label_set_text(label, text);
+      lv_obj_set_style_text_font(label, &font_douyin_16, LV_PART_MAIN |
+    LV_STATE_DEFAULT);
     // 添加选中图标
     lv_obj_t* img = lv_img_create(btn);
     lv_img_set_src(img, "S:/img/set_ok.bin");
@@ -419,7 +421,8 @@ static lv_obj_t* create_menu_item(const char* text, const char* icon_path) {
     lv_obj_set_style_radius(cont, 10, LV_STATE_DEFAULT | LV_PART_MAIN);
     lv_obj_set_style_bg_color(cont, lv_color_white(),
                               LV_STATE_DEFAULT | LV_PART_MAIN);
-    lv_obj_set_style_bg_color(cont, lv_color_hex(0xDCDADA), 6);
+    // lv_obj_set_style_bg_color(cont, lv_color_hex(0xDCDADA), 6);  //设置选中的背景颜色
+    lv_obj_set_style_bg_color(cont, lv_color_white(), 6);  //设置选中的背景颜色
     lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
     lv_group_add_obj(_this->group, cont);
     return cont;

@@ -20,7 +20,7 @@ def main():
             size = item["size"]
             fileName = item["fileName"]
             bpp = item["bpp"]
-            symbols = item["symbols"]
+            symbols = ''.join(set(item["symbols"]))
             r = item["range"] or "0x20-0x7f"
             os.system(
                 f"lv_font_conv --no-compress --no-prefilter --bpp {bpp}   --size {size} --font {font_path} -r {r} --format lvgl --force-fast-kern-format -o {os.path.normpath(os.path.join(outDir,fileName))} {'--symbols ' + symbols.encode('utf-8').decode('utf-8') if symbols else ''}"
