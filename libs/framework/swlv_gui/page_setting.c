@@ -7,7 +7,6 @@ static ui_data_t* _this;            // 自身对象
 static lv_obj_t* page_view = NULL;  // 主Root根页面对象
 static lv_obj_t* last_focus;        // 标记-记录上一次的焦点对象
 
-static void* bus_button;   // 消息订阅-物理按键消息
 static void* bus_gps_info; /*GPS数据*/
 
 /* 组件定义 */
@@ -52,7 +51,7 @@ static lv_obj_t* fun_get_view() {
 static void on_create_fun(ui_data_t* ui_dat, void* params) {
     _this = ui_dat;
     page_view = lv_obj_create(NULL);
-    ui_init_group(ui_dat);  // 初始化按键Group可监听组
+    lv_group_add_obj(ui_dat->group, page_view);
     lv_obj_clear_flag(page_view, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_add_state(page_view, LV_STATE_DISABLED);
 
@@ -102,35 +101,30 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     create_sub_page();
     lv_obj_t* cont;
     cont = create_menu_item("表盘样式", "S:/img/set_style.bin");
-    // cont->user_data = sub_page_dail;
     lv_obj_set_user_data(cont, sub_page_dail);
     lv_menu_set_load_page_event(menu, cont, sub_page_dail);
 
     cont = create_menu_item("自动休眠", "S:/img/set_sleep.bin");
-    // cont->user_data = sub_page_sleep;
     lv_obj_set_user_data(cont, sub_page_sleep);
     lv_menu_set_load_page_event(menu, cont, sub_page_sleep);
 
     cont = create_menu_item("骑行记录", "S:/img/set_log.bin");
-    // cont->user_data = sub_page_run_log;
     lv_obj_set_user_data(cont, sub_page_run_log);
     lv_menu_set_load_page_event(menu, cont, sub_page_run_log);
 
     cont = create_menu_item("定位信息", "S:/img/set_gps.bin");
-    // cont->user_data = sub_page_gps_pos;
     lv_obj_set_user_data(cont, sub_page_gps_pos);
     lv_menu_set_load_page_event(menu, cont, sub_page_gps_pos);
 
     cont = create_menu_item("关于本机", "S:/img/set_info.bin");
-    // cont->user_data = sub_page_about;
     lv_obj_set_user_data(cont, sub_page_about);
     lv_menu_set_load_page_event(menu, cont, sub_page_about);
 
+    cont = create_menu_item("退出设置", "S:/img/set_back.bin");
+    lv_obj_add_event_cb(cont, on_exit, LV_EVENT_CLICKED, NULL);
+
     cont = create_menu_item("关机", "S:/img/power.bin");
     lv_obj_add_event_cb(cont, on_power_close, LV_EVENT_CLICKED, NULL);
-
-    cont = create_menu_item("EXIT", "S:/img/power.bin");
-    lv_obj_add_event_cb(cont, on_exit, LV_EVENT_CLICKED, NULL);
 
     lv_menu_set_page(menu, menu_main);
 }
@@ -162,7 +156,7 @@ static void create_sub_page() {
     lv_obj_set_layout(sub_page_sleep, LV_LAYOUT_FLEX);
     lv_obj_set_flex_flow(sub_page_sleep, LV_FLEX_FLOW_COLUMN);
     lv_obj_set_flex_align(sub_page_sleep, LV_FLEX_ALIGN_SPACE_BETWEEN,
-                          LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_SPACE_BETWEEN);
+                          LV_FLEX_ALIGN_CENTER, LV_FLEX_ALIGN_CENTER);
     list = lv_list_create(sub_page_sleep);
     lv_obj_set_size(list, 200, LV_SIZE_CONTENT);
     lv_obj_set_scrollbar_mode(list, LV_SCROLLBAR_MODE_OFF);  // 不显示滚动条
@@ -442,9 +436,7 @@ static lv_obj_t* create_menu_item(const char* text, const char* icon_path) {
 static void on_menu_item_click_envent(lv_event_t* e) {
     // 改变顶部状态栏的标题文字内容
     void* use_dat = lv_event_get_user_data(e);
-    // lv_label_set_text(text_title, e->user_data);
     lv_label_set_text(text_title, ((char*)lv_event_get_user_data(e)));
-    // lv_obj_t* item = e->target;
     lv_obj_t* item = lv_event_get_target_obj(e);
     last_focus = lv_group_get_focused(_this->group);
     // 在这里设置选项的默认值-默认值将会设置为焦点
@@ -476,7 +468,6 @@ static void on_menu_item_click_envent(lv_event_t* e) {
  */
 static void on_menu_item_selected_envent(lv_event_t* e) {
     lv_obj_t* screen = lv_event_get_target(e);
-    // lv_obj_t* img = e->user_data;
     lv_obj_t* img = lv_event_get_user_data(e);
     lv_event_code_t code = lv_event_get_code(e);
     if (code == LV_EVENT_FOCUSED) {
@@ -539,31 +530,6 @@ static void set_focus(lv_obj_t* obj) {
     lv_anim_start(&a);
 }
 
-/**
- * @brief 订阅获取转发的原始按键信息
- * @param s
- * @param m
- */
-static void on_event_btn(void* s, bus_msg_t* m) {
-    app_btn_pck* key = (app_btn_pck*)m->payload;
-    // 退出键
-    if (key->btn_code == APP_BUTTON_UP && key->btn_state == APP_BUTTON_PRESS) {
-        if (lv_menu_get_cur_main_page(menu) != menu_main) {
-            // 子菜单页内就退出到主菜单页
-            lv_event_send(lv_menu_get_main_header_back_button(menu),
-                          LV_EVENT_CLICKED, NULL);
-            // 还原之前的标题内容和焦点对象
-            lv_label_set_text(text_title, "设置");
-            if (last_focus != NULL) {
-                lv_group_focus_obj(last_focus);
-            }
-        } else {
-            // 如果是主设置页就关闭本菜单
-            ui_fun_finish(_this, true);
-        }
-    }
-}
-
 static void on_exit(lv_event_t* e) {
     ui_fun_finish(_this, true);
 }
@@ -575,14 +541,10 @@ static void on_event_gps_info(void* sub, bus_msg_t* msg) {
 
 static void on_stop_fun(void* params) {
     // 解除绑定的订阅
-    // bus_unregister_subscribe(bus_button);
     bus_unregister_subscribe(bus_gps_info);
 }
 
 static void on_start_fun(void* params) {
-    // 绑定订阅
-    // bus_button =
-    //     bus_register_subscribe(DATA_BUS_BUTTON_EVENT, on_event_btn, NULL);
     bus_gps_info =
         bus_register_subscribe(DATA_BUS_GPS_REFRESH, on_event_gps_info, NULL);
 }
@@ -608,16 +570,15 @@ static void on_index_read_cb(lv_indev_t* indev, lv_indev_data_t* data) {
     }
 
     // 如果是子菜单就退出到主菜单
-    if (data->key == LV_KEY_ENTER) {
-        if (lv_menu_get_cur_main_page(menu) != menu_main) {
-            // 子菜单页内就退出到主菜单页
-            lv_event_send(lv_menu_get_main_header_back_button(menu),
+    if (data->key == LV_KEY_ENTER &&
+        lv_menu_get_cur_main_page(menu) != menu_main) {
+        // 子菜单页内就退出到主菜单页
+        lv_obj_send_event(lv_menu_get_main_header_back_button(menu),
                           LV_EVENT_CLICKED, NULL);
-            // 还原之前的标题内容和焦点对象
-            lv_label_set_text(text_title, "设置");
-            if (last_focus != NULL) {
-                lv_group_focus_obj(last_focus);
-            }
+        // 还原之前的标题内容和焦点对象
+        lv_label_set_text(text_title, "设置");
+        if (last_focus != NULL) {
+            lv_group_focus_obj(last_focus);
         }
     }
 }

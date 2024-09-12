@@ -65,7 +65,6 @@ static void create_battery_bar() {
 
 static void on_event_key_cb(lv_event_t* e) {
     uint32_t key = lv_event_get_key(e);
-    lv_log("on_event_cb: key=%ld", key);
     if (key == LV_KEY_ENTER) {
         ui_intent_t intent;
         ui_fun_fast_create_intent(_this, ACTIVITY_ID_SETTING, &intent);
@@ -76,8 +75,7 @@ static void on_event_key_cb(lv_event_t* e) {
 static void on_create_fun(ui_data_t* ui_dat, void* params) {
     _this = ui_dat;
     page_view = lv_obj_create(NULL);
-    // 初始化按键可监听
-    ui_init_group(_this);
+    lv_group_add_obj(ui_dat->group, page_view);
     lv_obj_clear_flag(page_view, LV_OBJ_FLAG_SCROLLABLE);
     lv_obj_set_style_bg_img_src(page_view, "S:/img/dark_style_bg.bin",
                                 LV_PART_MAIN | LV_STATE_DEFAULT);

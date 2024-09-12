@@ -47,34 +47,39 @@ struct mergin_bin_t bin_infos[] = {
 		.end_address = 142206 
 	},
 	{ 
-		.item_name = "set_gps.bin",
+		.item_name = "set_back.bin",
 		.start_address = 142206,
 		.end_address = 143018 
 	},
 	{ 
-		.item_name = "set_info.bin",
+		.item_name = "set_gps.bin",
 		.start_address = 143018,
 		.end_address = 143830 
 	},
 	{ 
-		.item_name = "set_log.bin",
+		.item_name = "set_info.bin",
 		.start_address = 143830,
 		.end_address = 144642 
 	},
 	{ 
-		.item_name = "set_ok.bin",
+		.item_name = "set_log.bin",
 		.start_address = 144642,
 		.end_address = 145454 
 	},
 	{ 
-		.item_name = "set_sleep.bin",
+		.item_name = "set_ok.bin",
 		.start_address = 145454,
 		.end_address = 146266 
 	},
 	{ 
-		.item_name = "set_style.bin",
+		.item_name = "set_sleep.bin",
 		.start_address = 146266,
 		.end_address = 147078 
 	},
+	{ 
+		.item_name = "set_style.bin",
+		.start_address = 147078,
+		.end_address = 147890 
+	},
 };
-size_t bin_infos_len = 15;
+size_t bin_infos_len = 16;

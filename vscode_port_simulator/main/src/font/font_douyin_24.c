@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 24 px
  * Bpp: 4
- * Opts: --no-compress --no-prefilter --bpp 4 --size 24 --font e:\workspace\hardware\ccy-gps-esp32s3\scripts\font_script\.\font\douyinsansbold.otf -r 0x20-0x7f --format lvgl --force-fast-kern-format -o e:\WorkSpace\Hardware\CCY-GPS-ESP32S3\scripts\font_script\output\font_douyin_24.c --symbols 位机录设表定样行本眠骑于息盘式动信自关记置休
+ * Opts: --no-compress --no-prefilter --bpp 4 --size 24 --font e:\workspace\hardware\ccy-gps-esp32s3\scripts\font_script\.\font\douyinsansbold.otf -r 0x20-0x7f --format lvgl --force-fast-kern-format -o e:\WorkSpace\Hardware\CCY-GPS-ESP32S3\scripts\font_script\output\font_douyin_24.c --symbols 本息录置信表式骑机动样自记关行休眠设盘位于定
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE

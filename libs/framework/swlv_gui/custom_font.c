@@ -12,5 +12,6 @@ lv_obj_t* util_label_create_pad_b5(lv_obj_t* parent, const char* text) {
     lv_label_set_text(label, text);
     lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
     lv_obj_set_style_pad_bottom(label, 5, LV_PART_MAIN);
+    lv_obj_set_style_text_font(label, &font_douyin_16, LV_PART_MAIN);
     return label;
 }

@@ -21,9 +21,7 @@ static lv_obj_t* _init_empty_scr;
 extern ui_data_t* ui_data_def[MAX_PAGE];
 extern void register_ui_def();
 static void ui_deinit_group(ui_data_t* ui_dat);
-
-// KeyDev
-// extern lv_indev_t* lv_win32_keypad_device_object;
+static void ui_set_group(ui_data_t* ui_dat);
 
 void ui_init_and_start() {
     // 这里去注册activity
@@ -104,13 +102,13 @@ static void push_stack(ui_data_t* activity) {
                     if (p1->ui_data->fun_on_stop != NULL) {
                         p1->ui_data->fun_on_stop(NULL);
                     }
+                    ui_deinit_group(p1->ui_data);
                     if (p1->ui_data->fun_on_destoy != NULL) {
                         p1->ui_data->fun_on_destoy(NULL);
                     }
-                    ui_deinit_group(p1->ui_data);
                     activity_stack_link_t* temp = p1->next;
                     lv_obj_del(p1->ui_data->fun_get_view());
-                    free(p1);
+                    lv_free(p1);
                     p1 = temp;
                 }
                 l_bottom_p = p;
@@ -119,7 +117,7 @@ static void push_stack(ui_data_t* activity) {
         }
     }
     activity_stack_link_t* p =
-        (activity_stack_link_t*)malloc(sizeof(activity_stack_link_t));
+        (activity_stack_link_t*)lv_malloc_zeroed(sizeof(activity_stack_link_t));
     if (p == NULL) {
         ui_error(
             "Error: Failed to create memory space while pressing the stack");
@@ -146,7 +144,7 @@ static void pull_stack(ui_data_t* activity) {
         if (l_bottom_p == next) {
             l_bottom_p = &l_root;
         }
-        free(next);
+        lv_free(next);
         return;
     }
     activity_stack_link_t* p = l_root.next;
@@ -157,7 +155,7 @@ static void pull_stack(ui_data_t* activity) {
             if (p == l_bottom_p) {
                 l_bottom_p = p->pre;
             }
-            free(p);
+            lv_free(p);
             ui_stack_index--;
             break;
         }
@@ -187,6 +185,9 @@ void ui_fun_start_activity(ui_intent_t* intent) {
     if (intent->_this->fun_on_stop != NULL) {
         intent->_this->fun_on_stop(NULL);
     }
+    if (intent->target->group == NULL) {
+        intent->target->group = lv_group_create();
+    }
     if (intent->target->fun_on_create != NULL && !intent->target->is_createed) {
         intent->target->fun_on_create(intent->target, NULL);
         intent->target->is_createed = true;
@@ -194,6 +195,7 @@ void ui_fun_start_activity(ui_intent_t* intent) {
     if (intent->target->fun_on_start != NULL) {
         intent->target->fun_on_start(NULL);
     }
+    ui_set_group(intent->target);
     if (intent->anim) {
         _ui_load_scr_opa(intent->target->fun_get_view());
     } else {
@@ -223,10 +225,10 @@ void ui_fun_finish(ui_data_t* _this, bool anim) {
     if (_this->fun_on_stop != NULL) {
         _this->fun_on_stop(NULL);
     }
+    ui_deinit_group(_this);
     if (_this->fun_on_destoy != NULL) {
         _this->fun_on_destoy(NULL);
     }
-    ui_deinit_group(_this);
     bool is_top = l_bottom_p->ui_data == _this;
     pull_stack(_this);
     if (is_top) {
@@ -237,10 +239,7 @@ void ui_fun_finish(ui_data_t* _this, bool anim) {
         if (l_bottom_p->ui_data->fun_on_start != NULL) {
             l_bottom_p->ui_data->fun_on_start(NULL);
         }
-        if (l_bottom_p->ui_data->group != NULL) {
-            lv_indev_set_group(lv_indev_get_next(NULL),
-                               l_bottom_p->ui_data->group);
-        }
+        ui_set_group(l_bottom_p->ui_data);
         if (anim) {
             _ui_load_scr_opa(l_bottom_p->ui_data->fun_get_view());
         } else {
@@ -293,20 +292,12 @@ void ui_send_event_all(bus_event event, void* params) {
 /**
  * 初始化按键group
  */
-void ui_init_group(ui_data_t* ui_dat) {
+static void ui_set_group(ui_data_t* ui_dat) {
     if (ui_dat->group == NULL) {
-        ui_dat->group = lv_group_create();
-        // lv_group_set_default(ui_dat->group);
-        // lv_indev_set_group(ui_base_get_indev(), ui_dat->group);
-        lv_obj_t* obj = ui_dat->fun_get_view();
-        if (obj == NULL) {
-            ui_error("FAIL: fun_get_view get NULL");
-            return;
-        }
-        lv_indev_set_group(lv_indev_get_next(NULL), ui_dat->group);
-        lv_group_add_obj(ui_dat->group, obj);
-        /*     lv_group_set_editing(ui_dat->group, false);*/
+        ui_error("FAIL: lv_group dont not NULL");
+        return;
     }
+    lv_indev_set_group(lv_indev_get_next(NULL), ui_dat->group);
 }
 
 /**
@@ -315,8 +306,13 @@ void ui_init_group(ui_data_t* ui_dat) {
  */
 static void ui_deinit_group(ui_data_t* ui_dat) {
     if (ui_dat->group != NULL) {
+        lv_indev_t* indev = lv_indev_get_next(NULL);
+        if (lv_indev_get_group(indev) == ui_dat->group) {
+            lv_indev_set_group(indev, lv_group_get_default());
+        }
         lv_group_remove_all_objs(ui_dat->group);
         lv_group_del(ui_dat->group);
+        ui_dat->group = NULL;
     }
 }
 

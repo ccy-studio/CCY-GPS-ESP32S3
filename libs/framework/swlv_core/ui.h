@@ -114,12 +114,6 @@ void _ui_load_scr_opa(lv_obj_t* scr);
 void ui_error(char* error);
 
 /**
- * @brief 初始化UI KeyGroup
- * @param ui_dat
- */
-void ui_init_group(ui_data_t* ui_dat);
-
-/**
  * @brief 向栈顶当前活动的Activity发送Event事件
  * @param event 事件类型
  * @param params 用户数据

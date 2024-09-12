@@ -60,8 +60,6 @@ extern lv_indev_t* create_custom_indev();
 /**********************
  *  STATIC PROTOTYPES
  **********************/
-static lv_indev_t* kb;
-static lv_indev_read_cb_t red_cb;
 
 /**********************
  *   GLOBAL FUNCTIONS
@@ -117,9 +115,8 @@ static lv_display_t* hal_init(int32_t w, int32_t h) {
 
     lv_display_t* disp = lv_sdl_window_create(w, h);
 
-   
     lv_display_set_default(disp);
-    kb = create_custom_indev();
+    lv_indev_t* kb = create_custom_indev();
     lv_indev_set_group(kb, lv_group_get_default());
     lv_indev_set_display(kb, disp);
 
@@ -127,8 +124,4 @@ static lv_display_t* hal_init(int32_t w, int32_t h) {
     lv_log_register_print_cb(sdl_log_cb);
 
     return disp;
-}
-
-lv_indev_t* ui_base_get_indev() {
-    return kb;
 }

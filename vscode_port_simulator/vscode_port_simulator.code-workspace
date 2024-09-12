@@ -56,7 +56,10 @@
 			"xhash": "c",
 			"xstring": "c",
 			"xtree": "c",
-			"xutility": "c"
+			"xutility": "c",
+			"lv_menu_private.h": "c",
+			"lv_types.h": "c",
+			"lv_style.h": "c"
 		}
 	}
 }

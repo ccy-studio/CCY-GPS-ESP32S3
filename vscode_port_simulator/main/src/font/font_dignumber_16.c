@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 16 px
  * Bpp: 4
- * Opts: --no-compress --no-prefilter --bpp 4 --size 16 --font e:\workspace\hardware\ccy-gps-esp32s3\scripts\font_script\.\font\digitalnumbers-regular.ttf -r 0x20-0x7f --format lvgl --force-fast-kern-format -o e:\WorkSpace\Hardware\CCY-GPS-ESP32S3\scripts\font_script\output\font_dignumber_16.c --symbols KM/h
+ * Opts: --no-compress --no-prefilter --bpp 4 --size 16 --font e:\workspace\hardware\ccy-gps-esp32s3\scripts\font_script\.\font\digitalnumbers-regular.ttf -r 0x20-0x7f --format lvgl --force-fast-kern-format -o e:\WorkSpace\Hardware\CCY-GPS-ESP32S3\scripts\font_script\output\font_dignumber_16.c --symbols MKh/
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE

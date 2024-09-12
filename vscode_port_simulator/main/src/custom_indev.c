@@ -7,9 +7,9 @@ extern lv_display_t* lv_sdl_get_disp_from_win_id(uint32_t win_id);
 
 static void sdl_keyboard_read_custom(lv_indev_t* indev, lv_indev_data_t* data) {
     app_btn_pck* pck = lv_indev_get_driver_data(indev);
-    lv_log("CB Key=%d,release: %d, PCK: code = %d,state = %d\n", data->key,
-           data->state == LV_INDEV_STATE_PRESSED, pck->btn_code,
-           pck->btn_state);
+    // lv_log("CB Key=%d,release: %d, PCK: code = %d,state = %d\n", data->key,
+    //        data->state == LV_INDEV_STATE_PRESSED, pck->btn_code,
+    //        pck->btn_state);
 
     ui_data_t* curr = ui_get_current();
     if (curr != NULL && curr->fun_read_cb != NULL) {

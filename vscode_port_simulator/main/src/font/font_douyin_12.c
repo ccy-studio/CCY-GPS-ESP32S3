@@ -1,7 +1,7 @@
 /*******************************************************************************
  * Size: 12 px
  * Bpp: 4
- * Opts: --no-compress --no-prefilter --bpp 4 --size 12 --font e:\workspace\hardware\ccy-gps-esp32s3\scripts\font_script\.\font\douyinsansbold.otf -r 0x20-0x7f --format lvgl --force-fast-kern-format -o e:\WorkSpace\Hardware\CCY-GPS-ESP32S3\scripts\font_script\output\font_douyin_12.c --symbols 当未开启骑行时,超自动关机的间用单里程最高速均平温度大：分钟秒小
+ * Opts: --no-compress --no-prefilter --bpp 4 --size 12 --font e:\workspace\hardware\ccy-gps-esp32s3\scripts\font_script\.\font\douyinsansbold.otf -r 0x20-0x7f --format lvgl --force-fast-kern-format -o e:\WorkSpace\Hardware\CCY-GPS-ESP32S3\scripts\font_script\output\font_douyin_12.c --symbols 分未用骑机的动开超,自：关单程小行里启温高最速均大当时钟秒间平度
  ******************************************************************************/
 
 #ifdef LV_LVGL_H_INCLUDE_SIMPLE
