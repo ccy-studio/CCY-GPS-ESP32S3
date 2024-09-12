@@ -47,6 +47,8 @@ static lv_display_t* hal_init(int32_t w, int32_t h);
  *      DEFINES
  *********************/
 
+extern lv_indev_t* create_custom_indev();
+
 /**********************
  *      TYPEDEFS
  **********************/
@@ -106,47 +108,6 @@ static void sdl_log_cb(lv_log_level_t level, const char* buf) {
     SDL_LogInfo(0, buf);
 }
 
-static void sdl_keyboard_read_custom(lv_indev_t* indev, lv_indev_data_t* data) {
-    red_cb(indev, data);
-    lv_log("Key=%d,release: %d\n", data->key,
-           data->state == LV_INDEV_STATE_PRESSED);
-    /**
-     *  APP_BUTTON_UP = 1,
-        APP_BUTTON_DOWN,
-        APP_BUTTON_ENTER,
-     */
-    app_btn_pck pck;
-    pck.btn_state = data->key, data->state;
-
-    switch (data->key) {
-        case 17:  // APP_BUTTON_UP
-            pck.btn_code = APP_BUTTON_UP;
-            break;
-        case 18:  // APP_BUTTON_DOWN
-            pck.btn_code = APP_BUTTON_DOWN;
-            break;
-        case 10:  // APP_BUTTON_ENTER
-            pck.btn_code = APP_BUTTON_ENTER;
-            break;
-
-        case 119:  // APP_BUTTON_UP LONG
-            pck.btn_code = APP_BUTTON_UP;
-            pck.btn_state = APP_BUTTON_LONG_PRESS;
-            break;
-        case 115:  // APP_BUTTON_DOWN LONG
-            pck.btn_code = APP_BUTTON_DOWN;
-            pck.btn_state = APP_BUTTON_LONG_PRESS;
-            break;
-        case 120:  // APP_BUTTON_ENTER LONG
-            pck.btn_code = APP_BUTTON_ENTER;
-            pck.btn_state = APP_BUTTON_LONG_PRESS;
-            break;
-        default:
-            break;
-    }
-    notify_button_event(&pck);
-}
-
 /**
  * Initialize the Hardware Abstraction Layer (HAL) for the LVGL graphics
  * library
@@ -156,32 +117,11 @@ static lv_display_t* hal_init(int32_t w, int32_t h) {
 
     lv_display_t* disp = lv_sdl_window_create(w, h);
 
-    // lv_obj_add_event()
-
-    // lv_indev_t* mouse = lv_sdl_mouse_create();
-    // lv_indev_set_group(mouse, lv_group_get_default());
-    // lv_indev_set_display(mouse, disp);
+   
     lv_display_set_default(disp);
-
-    // LV_IMAGE_DECLARE(mouse_cursor_icon); /*Declare the image file.*/
-    // lv_obj_t* cursor_obj;
-    // cursor_obj = lv_image_create(
-    //     lv_screen_active()); /*Create an image object for the cursor */
-    // lv_image_set_src(cursor_obj, &mouse_cursor_icon); /*Set the image
-    // source*/ lv_indev_set_cursor(mouse,
-    //                     cursor_obj); /*Connect the image  object to the
-    //                     driver*/
-
-    // lv_indev_t* mousewheel = lv_sdl_mousewheel_create();
-    // lv_indev_set_display(mousewheel, disp);
-    // lv_indev_set_group(mousewheel, lv_group_get_default());
-
-    kb = lv_sdl_keyboard_create();
-    red_cb = lv_indev_get_read_cb(kb);
-    lv_indev_set_read_cb(kb, sdl_keyboard_read_custom);
-    lv_indev_set_display(kb, disp);
-
+    kb = create_custom_indev();
     lv_indev_set_group(kb, lv_group_get_default());
+    lv_indev_set_display(kb, disp);
 
     // 日志打印的注册
     lv_log_register_print_cb(sdl_log_cb);

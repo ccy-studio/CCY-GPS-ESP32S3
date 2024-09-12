@@ -35,7 +35,28 @@
 			"string_view": "c",
 			"math.h": "c",
 			"store.h": "c",
-			"lv_sdl_private.h": "c"
+			"lv_sdl_private.h": "c",
+			"lv_event.h": "c",
+			"lv_area.h": "c",
+			"lv_group.h": "c",
+			"lv_conf_internal.h": "c",
+			"bitset": "c",
+			"deque": "c",
+			"format": "c",
+			"initializer_list": "c",
+			"list": "c",
+			"queue": "c",
+			"random": "c",
+			"ranges": "c",
+			"regex": "c",
+			"span": "c",
+			"stack": "c",
+			"utility": "c",
+			"vector": "c",
+			"xhash": "c",
+			"xstring": "c",
+			"xtree": "c",
+			"xutility": "c"
 		}
 	}
 }

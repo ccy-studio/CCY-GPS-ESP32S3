@@ -29,7 +29,9 @@ target_include_directories(lvgl PUBLIC ${PROJECT_SOURCE_DIR} ${SDL2_INCLUDE_DIRS
 # 添加字体
 file(GLOB_RECURSE FONT_SOURCES ${PROJECT_SOURCE_DIR}/main/src/font/*.c)
 
-add_executable(main main/src/main.c main/src/mouse_cursor_icon.c main/src/local_fs_bin.c ${FONT_SOURCES})
+file(GLOB_RECURSE SRCS ${PROJECT_SOURCE_DIR}/main/src/*.c)
+
+add_executable(main ${SRCS} ${FONT_SOURCES})
 
 #添加BIN资源路径
 target_compile_definitions(main PRIVATE BIN_DIR="${PROJECT_SOURCE_DIR}/../scripts/img_script/merge_output/merge.bin")

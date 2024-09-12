@@ -64,6 +64,10 @@ static ui_data_t* find_by_id(activity_id_t id) {
     return NULL;
 }
 
+ui_data_t* ui_get_current() {
+    return l_bottom_p->ui_data;
+}
+
 /**
  * 栈顶压栈
  */
@@ -199,7 +203,6 @@ void ui_fun_start_activity(ui_intent_t* intent) {
 }
 
 static void on_activity_unload_del(lv_event_t* e) {
-    // ui_data_t* this_data = (ui_data_t*)e->user_data;
     ui_data_t* this_data = lv_event_get_user_data(e);
     lv_obj_del(lv_event_get_target(e));
     this_data->is_createed = false;
@@ -233,6 +236,10 @@ void ui_fun_finish(ui_data_t* _this, bool anim) {
         }
         if (l_bottom_p->ui_data->fun_on_start != NULL) {
             l_bottom_p->ui_data->fun_on_start(NULL);
+        }
+        if (l_bottom_p->ui_data->group != NULL) {
+            lv_indev_set_group(lv_indev_get_next(NULL),
+                               l_bottom_p->ui_data->group);
         }
         if (anim) {
             _ui_load_scr_opa(l_bottom_p->ui_data->fun_get_view());
@@ -283,11 +290,21 @@ void ui_send_event_all(bus_event event, void* params) {
     }
 }
 
+/**
+ * 初始化按键group
+ */
 void ui_init_group(ui_data_t* ui_dat) {
     if (ui_dat->group == NULL) {
         ui_dat->group = lv_group_create();
-        lv_group_set_default(ui_dat->group);
-        lv_indev_set_group(ui_base_get_indev(), ui_dat->group);
+        // lv_group_set_default(ui_dat->group);
+        // lv_indev_set_group(ui_base_get_indev(), ui_dat->group);
+        lv_obj_t* obj = ui_dat->fun_get_view();
+        if (obj == NULL) {
+            ui_error("FAIL: fun_get_view get NULL");
+            return;
+        }
+        lv_indev_set_group(lv_indev_get_next(NULL), ui_dat->group);
+        lv_group_add_obj(ui_dat->group, obj);
         /*     lv_group_set_editing(ui_dat->group, false);*/
     }
 }

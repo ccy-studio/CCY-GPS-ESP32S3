@@ -30,6 +30,7 @@ static void set_focus(lv_obj_t* obj);
 static lv_obj_t* create_run_log_item(app_run_log_t* log);
 static void create_about_page();
 static void on_power_close(lv_event_t* e);
+static void on_exit(lv_event_t* e);
 
 /*  设置选项  */
 static const char* app_conf_dail[2] = {"科技黑", "简约白"};  // 表盘的样式设置
@@ -50,9 +51,11 @@ static lv_obj_t* fun_get_view() {
  */
 static void on_create_fun(ui_data_t* ui_dat, void* params) {
     _this = ui_dat;
-    ui_init_group(ui_dat);  // 初始化按键Group可监听组
     page_view = lv_obj_create(NULL);
+    ui_init_group(ui_dat);  // 初始化按键Group可监听组
     lv_obj_clear_flag(page_view, LV_OBJ_FLAG_SCROLLABLE);
+    lv_obj_add_state(page_view, LV_STATE_DISABLED);
+
     lv_obj_set_style_bg_color(page_view, lv_color_hex(0xF5F5F5),
                               LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_bg_opa(page_view, 255, LV_PART_MAIN | LV_STATE_DEFAULT);
@@ -125,6 +128,9 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
 
     cont = create_menu_item("关机", "S:/img/power.bin");
     lv_obj_add_event_cb(cont, on_power_close, LV_EVENT_CLICKED, NULL);
+
+    cont = create_menu_item("EXIT", "S:/img/power.bin");
+    lv_obj_add_event_cb(cont, on_exit, LV_EVENT_CLICKED, NULL);
 
     lv_menu_set_page(menu, menu_main);
 }
@@ -362,8 +368,8 @@ static lv_obj_t* create_select_item(const char* text, lv_obj_t* cont) {
     label = lv_label_create(btn);
     lv_obj_set_size(label, LV_SIZE_CONTENT, LV_SIZE_CONTENT);
     lv_label_set_text(label, text);
-      lv_obj_set_style_text_font(label, &font_douyin_16, LV_PART_MAIN |
-    LV_STATE_DEFAULT);
+    lv_obj_set_style_text_font(label, &font_douyin_16,
+                               LV_PART_MAIN | LV_STATE_DEFAULT);
     // 添加选中图标
     lv_obj_t* img = lv_img_create(btn);
     lv_img_set_src(img, "S:/img/set_ok.bin");
@@ -421,8 +427,9 @@ static lv_obj_t* create_menu_item(const char* text, const char* icon_path) {
     lv_obj_set_style_radius(cont, 10, LV_STATE_DEFAULT | LV_PART_MAIN);
     lv_obj_set_style_bg_color(cont, lv_color_white(),
                               LV_STATE_DEFAULT | LV_PART_MAIN);
-    // lv_obj_set_style_bg_color(cont, lv_color_hex(0xDCDADA), 6);  //设置选中的背景颜色
-    lv_obj_set_style_bg_color(cont, lv_color_white(), 6);  //设置选中的背景颜色
+    // lv_obj_set_style_bg_color(cont, lv_color_hex(0xDCDADA), 6);
+    // //设置选中的背景颜色
+    lv_obj_set_style_bg_color(cont, lv_color_white(), 6);  // 设置选中的背景颜色
     lv_obj_set_style_text_color(label, lv_color_black(), LV_PART_MAIN);
     lv_group_add_obj(_this->group, cont);
     return cont;
@@ -557,6 +564,10 @@ static void on_event_btn(void* s, bus_msg_t* m) {
     }
 }
 
+static void on_exit(lv_event_t* e) {
+    ui_fun_finish(_this, true);
+}
+
 static void on_event_gps_info(void* sub, bus_msg_t* msg) {
     app_gps_t* gps = msg->payload;
     update_gps_info_message(gps);
@@ -564,14 +575,14 @@ static void on_event_gps_info(void* sub, bus_msg_t* msg) {
 
 static void on_stop_fun(void* params) {
     // 解除绑定的订阅
-    bus_unregister_subscribe(bus_button);
+    // bus_unregister_subscribe(bus_button);
     bus_unregister_subscribe(bus_gps_info);
 }
 
 static void on_start_fun(void* params) {
     // 绑定订阅
-    bus_button =
-        bus_register_subscribe(DATA_BUS_BUTTON_EVENT, on_event_btn, NULL);
+    // bus_button =
+    //     bus_register_subscribe(DATA_BUS_BUTTON_EVENT, on_event_btn, NULL);
     bus_gps_info =
         bus_register_subscribe(DATA_BUS_GPS_REFRESH, on_event_gps_info, NULL);
 }
@@ -580,10 +591,42 @@ static void on_destoy_fun(void* params) {
     lv_anim_del_all();
 }
 
+static void on_index_read_cb(lv_indev_t* indev, lv_indev_data_t* data) {
+    app_btn_pck* pck = lv_indev_get_driver_data(indev);
+    if (pck->btn_state == APP_BUTTON_PRESS ||
+        pck->btn_state == APP_BUTTON_LONG_PRESS) {
+        data->state = LV_INDEV_STATE_PRESSED;
+    } else {
+        data->state = LV_INDEV_STATE_RELEASED;
+    }
+    if (pck->btn_code == APP_BUTTON_UP) {
+        data->key = LV_KEY_PREV;
+    } else if (pck->btn_code == APP_BUTTON_DOWN) {
+        data->key = LV_KEY_NEXT;
+    } else if (pck->btn_code == APP_BUTTON_ENTER) {
+        data->key = LV_KEY_ENTER;
+    }
+
+    // 如果是子菜单就退出到主菜单
+    if (data->key == LV_KEY_ENTER) {
+        if (lv_menu_get_cur_main_page(menu) != menu_main) {
+            // 子菜单页内就退出到主菜单页
+            lv_event_send(lv_menu_get_main_header_back_button(menu),
+                          LV_EVENT_CLICKED, NULL);
+            // 还原之前的标题内容和焦点对象
+            lv_label_set_text(text_title, "设置");
+            if (last_focus != NULL) {
+                lv_group_focus_obj(last_focus);
+            }
+        }
+    }
+}
+
 ui_data_t page_setting = {.id = ACTIVITY_ID_SETTING,
                           .launcher_mode = SINGLE_TOP,
                           .fun_get_view = fun_get_view,
                           .fun_on_create = on_create_fun,
                           .fun_on_destoy = on_destoy_fun,
                           .fun_on_start = on_start_fun,
+                          .fun_read_cb = on_index_read_cb,
                           .fun_on_stop = on_stop_fun};

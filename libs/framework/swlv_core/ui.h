@@ -68,6 +68,7 @@ struct _ui_data_t {
     on_destoy fun_on_destoy;
     bool is_createed;
     lv_group_t* group;  // KeyGroup
+    lv_indev_read_cb_t fun_read_cb; //每个页面可以自定义按键的触发类型
 };
 
 typedef struct {
@@ -78,6 +79,12 @@ typedef struct {
 } ui_intent_t;
 
 void ui_init_and_start();
+
+/*
+ 获取当前的页面Activity
+*/
+ui_data_t* ui_get_current();
+
 
 /**
  * @brief 快速创建简单的Intent意图
@@ -140,8 +147,6 @@ void ui_send_event_all(bus_event event, void* params);
  * @param e
  */
 void ui_callback_dynamic_scrollbar(lv_event_t* e);
-
-lv_indev_t* ui_base_get_indev();
 
 #ifdef __cplusplus
 }
