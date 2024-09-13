@@ -6,12 +6,12 @@ extern "C" {
 
 #include "app_config.h"
 
-    /**
-     * @brief 时间格式化
-     * @param run_second 单位秒
-     * @return
-    */
-    const char* format_time(uint32_t run_second);
+/**
+ * @brief 时间格式化
+ * @param run_second 单位秒
+ * @return
+ */
+char* format_time(uint32_t run_second);
 
 #ifdef __cplusplus
 }

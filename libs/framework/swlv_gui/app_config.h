@@ -116,6 +116,13 @@ extern "C" {
     }app_real_record_t;
 
 
+
+/** 全局单例变量 */
+extern app_real_record_t global_real_record;
+extern app_environment_t global_env;
+extern app_gps_t global_gps;
+extern app_battery_t global_battery;
+
 #ifdef __cplusplus
 }
 #endif

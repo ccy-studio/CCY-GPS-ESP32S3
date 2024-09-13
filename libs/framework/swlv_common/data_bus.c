@@ -1,12 +1,15 @@
 ﻿#include "data_bus.h"
 #include <string.h>
 #include "stdlib.h"
-#ifdef BUS_TYPE_FREERTOS
+#if BUS_TYPE_FREERTOS
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 #endif
+#if BUS_TYPE_LVGL_ASYNC
+#include "lvgl.h"
+#endif
 
-#ifdef BUS_TYPE_FREERTOS
+#if BUS_TYPE_FREERTOS
 QueueHandle_t data_bus_queue;
 #endif
 
@@ -24,7 +27,7 @@ static bus_desc_t* bus_root = NULL;
 static uint8_t bus_cnt = 0;
 
 /* 记录当前骑行的行驶数据 */
-app_real_record_t current_real_record;
+app_real_record_t global_real_record;
 
 void* bus_register_subscribe(bus_event event,
                              bus_msg_subscribe_cb_t cb,
@@ -33,7 +36,7 @@ void* bus_register_subscribe(bus_event event,
         printf("Error: bus_register_subscribe cb is not null\n");
         return NULL;
     }
-    bus_desc_t* new_desc = (bus_desc_t*)malloc(sizeof(bus_desc_t));
+    bus_desc_t* new_desc = (bus_desc_t*)lv_malloc_zeroed(sizeof(bus_desc_t));
     if (new_desc == NULL) {
         printf("Error: create subscribe NULL\n");
         return NULL;
@@ -66,7 +69,7 @@ void bus_unregister_subscribe(void* subscribe) {
         return;
     }
     if (bus_root != NULL && bus_root == subscribe && bus_root->next == NULL) {
-        free(bus_root);
+        lv_free(bus_root);
         bus_root = NULL;
         bus_cnt--;
         return;
@@ -84,7 +87,7 @@ void bus_unregister_subscribe(void* subscribe) {
             if (pre != NULL) {
                 pre->next = next;
             }
-            free(temp);
+            lv_free(temp);
             temp = NULL;
             if (is_root) {
                 bus_root = next;
@@ -96,11 +99,29 @@ void bus_unregister_subscribe(void* subscribe) {
     bus_cnt--;
 }
 
+#if BUS_TYPE_LVGL_ASYNC
+struct lvgl_call_t {
+    bus_msg_subscribe_cb_t callback;
+    void* user_data;
+    bus_msg_t msg;
+};
+static void on_lvgl_async_cb(void* params) {
+    struct lvgl_call_t* p = (struct lvgl_call_t*)params;
+    if (p == NULL) {
+        LV_LOG_ERROR("on_lvgl_async_cb bus struct lvgl_call_t* p == NULL");
+        return;
+    }
+    p->callback(p->user_data, &p->msg);
+    lv_free(p);
+    p = NULL;
+}
+#endif
+
 /**
  * 通用方法
  */
 void bus_send(bus_event event, void* payload) {
-#ifdef BUS_TYPE_FREERTOS
+#if BUS_TYPE_FREERTOS
     bus_msg_t msg_q = {.id = event, .payload = payload};
     xQueueSend(data_bus_queue, &msg_q, portMAX_DELAY);
 #endif
@@ -117,7 +138,7 @@ void bus_send(bus_event event, void* payload) {
         temp = temp->next;
     }
     temp = bus_root;
-    arr = (bus_desc_t**)malloc(sizeof(bus_desc_t*) * cnt);
+    arr = (bus_desc_t**)lv_malloc_zeroed(sizeof(bus_desc_t*) * cnt);
     if (arr == NULL) {
         printf("bus_send create point fail\n");
         return;
@@ -132,32 +153,47 @@ void bus_send(bus_event event, void* payload) {
     }
     for (uint8_t i = 0; i < cnt; i++) {
         if (arr[i] && arr[i] != NULL) {
+#if BUS_TYPE_LVGL_ASYNC
+            struct lvgl_call_t* ct =
+                lv_malloc_zeroed(sizeof(struct lvgl_call_t));
+            if (ct == NULL) {
+                LV_LOG_ERROR("lv_malloc FAIL ");
+                return;
+            }
+            ct->callback = arr[i]->callback;
+            ct->msg.id = event;
+            ct->msg.user_data = arr[i]->user_data;
+            ct->msg.payload = payload;
+            ct->user_data = arr[i]->user_data;
+            lv_async_call(on_lvgl_async_cb, ct);
+#else
             bus_msg_t msg = {.id = event,
                              .user_data = arr[i]->user_data,
                              .payload = payload};
             arr[i]->callback(arr[i], &msg);
+#endif
         }
     }
-    free(arr);
+    lv_free(arr);
     arr = NULL;
 }
 
 void app_start_record() {
-    memset(&current_real_record, 0, sizeof(current_real_record));
-    current_real_record.is_start = true;
-    bus_send(DATA_BUS_RECORD_START, &current_real_record);
+    memset(&global_real_record, 0, sizeof(global_real_record));
+    global_real_record.is_start = true;
+    bus_send(DATA_BUS_RECORD_START, &global_real_record);
 }
 
 void app_stop_record() {
-    current_real_record.is_start = false;
-    bus_send(DATA_BUS_RECORD_STOP, &current_real_record);
+    global_real_record.is_start = false;
+    bus_send(DATA_BUS_RECORD_STOP, &global_real_record);
 }
 
 /**
  * @brief 通知-实时运行数据改变
  */
 void notify_data_change() {
-    bus_send(DATA_BUS_RECORD_CHANGE, &current_real_record);
+    bus_send(DATA_BUS_RECORD_CHANGE, &global_real_record);
 }
 
 /**
@@ -212,7 +248,7 @@ static void test_timer(lv_timer_t* t) {
     env_cnt++;
     if (gps_cnt == 5) {
         // send gps message
-        app_gps_t* gps = &current_real_record.curr_gps;
+        app_gps_t* gps = &global_real_record.curr_gps;
         gps->sats_in_use = !gps->sats_in_use;
         int randomNumber;
         randomNumber = (rand() % 100) + 20;  // 生成1到100之间的随机数
@@ -228,11 +264,11 @@ static void test_timer(lv_timer_t* t) {
         struct tm* timeinfo;
         time(&rawtime);                  // 获取当前时间
         timeinfo = localtime(&rawtime);  // 将时间转换为本地时间
-        current_real_record.curr_gps.datetime.hour = timeinfo->tm_hour;
-        current_real_record.curr_gps.datetime.minute = timeinfo->tm_min;
+        global_real_record.curr_gps.datetime.hour = timeinfo->tm_hour;
+        global_real_record.curr_gps.datetime.minute = timeinfo->tm_min;
 
         randomNumber = (rand() % 3600 * 3) + 3600;  // 生成1到100之间的随机数
-        current_real_record.curr_log_dat.run_second = randomNumber;
+        global_real_record.curr_log_dat.run_second = randomNumber;
 
         gps_cnt = 0;
         notify_data_change();

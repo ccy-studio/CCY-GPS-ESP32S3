@@ -29,7 +29,7 @@ static void set_focus(lv_obj_t* obj);
 static lv_obj_t* create_run_log_item(app_run_log_t* log);
 static void create_about_page();
 static void on_power_close(lv_event_t* e);
-static void on_exit(lv_event_t* e);
+static void on_exit_cb(lv_event_t* e);
 
 /*  设置选项  */
 static const char* app_conf_dail[2] = {"科技黑", "简约白"};  // 表盘的样式设置
@@ -121,7 +121,7 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_menu_set_load_page_event(menu, cont, sub_page_about);
 
     cont = create_menu_item("退出设置", "S:/img/set_back.bin");
-    lv_obj_add_event_cb(cont, on_exit, LV_EVENT_CLICKED, NULL);
+    lv_obj_add_event_cb(cont, on_exit_cb, LV_EVENT_CLICKED, NULL);
 
     cont = create_menu_item("关机", "S:/img/power.bin");
     lv_obj_add_event_cb(cont, on_power_close, LV_EVENT_CLICKED, NULL);
@@ -255,6 +255,7 @@ static void update_gps_info_message(app_gps_t* gps) {
             lv_obj_set_style_bg_color(label, lv_color_white(), 0);
             lv_obj_set_style_pad_ver(label, 5, 0);
             lv_obj_set_style_pad_hor(label, 10, 0);
+            lv_obj_set_style_text_font(label, &font_douyin_16, LV_PART_MAIN);
         }
     }
     int speed_kmh = roundf((gps->speed * 3.6));
@@ -530,7 +531,7 @@ static void set_focus(lv_obj_t* obj) {
     lv_anim_start(&a);
 }
 
-static void on_exit(lv_event_t* e) {
+static void on_exit_cb(lv_event_t* e) {
     ui_fun_finish(_this, true);
 }
 

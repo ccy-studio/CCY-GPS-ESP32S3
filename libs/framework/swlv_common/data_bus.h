@@ -6,7 +6,8 @@ extern "C" {
 
 #include "app_config.h"
 
-// #define BUS_TYPE_FREERTOS  /** RTOS队列模式 */
+#define BUS_TYPE_FREERTOS 0   /** RTOS队列模式 */
+#define BUS_TYPE_LVGL_ASYNC 1 /** LVGL异步通知模式 */
 
 /* 定义DataBus数据类型 */
 #define DATA_BUS_RECORD_STOP 0x01   /*骑行结束*/
@@ -24,10 +25,10 @@ typedef uint8_t bus_event;  // 事件类型
 typedef struct {
     bus_event id;
     void* user_data;
-    const void* payload;
+    void* payload;
 } bus_msg_t;
 
-#ifdef BUS_TYPE_FREERTOS
+#if BUS_TYPE_FREERTOS
 extern QueueHandle_t data_bus_queue;
 #endif
 

@@ -94,6 +94,7 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
 
     text_current_time = lv_label_create(page_view);
     lv_obj_set_width(text_current_time, LV_SIZE_CONTENT);
+    lv_obj_set_style_pad_all(text_current_time, 0, LV_PART_MAIN);
     lv_obj_set_height(text_current_time, LV_SIZE_CONTENT);
     lv_obj_set_x(text_current_time, 104);
     lv_obj_set_y(text_current_time, 5);
@@ -108,9 +109,9 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     text_battery = lv_label_create(page_view);
     lv_obj_set_width(text_battery, LV_SIZE_CONTENT);
     lv_obj_set_height(text_battery, LV_SIZE_CONTENT);
-    lv_obj_set_x(text_battery, 180);
+    lv_obj_set_x(text_battery, 167);
     lv_obj_set_y(text_battery, 9);
-    lv_label_set_text(text_battery, "100%");
+    lv_label_set_text(text_battery, "0%");
     lv_obj_set_style_text_color(text_battery, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_battery, 255,
@@ -119,14 +120,14 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
                                LV_PART_MAIN | LV_STATE_DEFAULT);
 
     text_current_speed = lv_label_create(page_view);
-    lv_obj_set_width(text_current_speed, 128);
+    lv_obj_set_width(text_current_speed, 130);
     lv_obj_set_height(text_current_speed, LV_SIZE_CONTENT);
     lv_label_set_long_mode(text_current_speed, LV_LABEL_LONG_SCROLL);
     lv_obj_set_style_text_align(text_current_speed, LV_TEXT_ALIGN_CENTER,
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_x(text_current_speed, 10);
     lv_obj_set_y(text_current_speed, 40);
-    lv_label_set_text(text_current_speed, "50");
+    lv_label_set_text(text_current_speed, "00");
     lv_obj_set_style_text_color(text_current_speed, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_current_speed, 255,
@@ -151,7 +152,7 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_set_height(text_run_timeinfo, LV_SIZE_CONTENT);
     lv_obj_set_x(text_run_timeinfo, 13);
     lv_obj_set_y(text_run_timeinfo, 137);
-    lv_label_set_text(text_run_timeinfo, "时长：12小时05分06秒");
+    lv_label_set_text(text_run_timeinfo, "-");
     lv_obj_set_style_text_color(text_run_timeinfo, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_run_timeinfo, 255,
@@ -203,7 +204,7 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_set_height(text_sensor_temp, LV_SIZE_CONTENT);
     lv_obj_set_x(text_sensor_temp, 188);
     lv_obj_set_y(text_sensor_temp, 212);
-    lv_label_set_text(text_sensor_temp, "23.3度");
+    lv_label_set_text(text_sensor_temp, "-");
     lv_obj_set_style_text_color(text_sensor_temp, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_sensor_temp, 255,
@@ -216,7 +217,7 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_set_height(text_sensor_humidity, LV_SIZE_CONTENT);
     lv_obj_set_x(text_sensor_humidity, 190);
     lv_obj_set_y(text_sensor_humidity, 240);
-    lv_label_set_text(text_sensor_humidity, "46.4%");
+    lv_label_set_text(text_sensor_humidity, "-");
     lv_obj_set_style_text_color(text_sensor_humidity, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_sensor_humidity, 255,
@@ -235,7 +236,7 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
 }
 
 static void on_event_data_change(void* sub, bus_msg_t* msg) {
-    app_real_record_t* dat = msg->payload;
+    app_real_record_t* dat = (app_real_record_t*)msg->payload;
     // 时间
     lv_label_set_text_fmt(text_current_time, "%02d:%02d",
                           dat->curr_gps.datetime.hour,
@@ -281,7 +282,7 @@ static void on_event_data_change(void* sub, bus_msg_t* msg) {
 static void on_event_battery(void* sub, bus_msg_t* msg) {
     app_battery_t* battery = msg->payload;
     // 电量
-    lv_label_set_text_fmt(text_battery, "%f%%", battery->level);
+    lv_label_set_text_fmt(text_battery, "%.1f%%%", battery->level);
     if (battery->is_charge) {
         // 正在充电
         lv_obj_set_style_text_color(text_battery, lv_color_hex(0x59EE71), 0);
@@ -295,8 +296,8 @@ static void on_event_battery(void* sub, bus_msg_t* msg) {
             lv_img_set_src(icon_battery_charge, "S:/img/battery.bin");
             lv_obj_set_width(icon_battery_charge, LV_SIZE_CONTENT);
             lv_obj_set_height(icon_battery_charge, LV_SIZE_CONTENT);
-            lv_obj_set_x(icon_battery_charge, 208);
-            lv_obj_set_y(icon_battery_charge, 8);
+            lv_obj_align_to(icon_battery_charge, text_battery,
+                            LV_ALIGN_OUT_RIGHT_MID, 10, 0);
             lv_obj_clear_flag(icon_battery_charge, LV_OBJ_FLAG_SCROLLABLE);
         }
     } else {
@@ -310,7 +311,7 @@ static void on_event_battery(void* sub, bus_msg_t* msg) {
         }
         // 改变进度条的值
         lv_bar_set_value(bar_battery, battery->level, LV_ANIM_OFF);
-        if (battery->level < 20) {
+        if (battery->level < 20.0) {
             lv_obj_set_style_text_color(text_battery, lv_color_hex(0xde1c31),
                                         0);
             lv_obj_set_style_bg_color(bar_battery, lv_color_hex(0xde1c31),
@@ -324,9 +325,9 @@ static void on_event_battery(void* sub, bus_msg_t* msg) {
 }
 static void on_event_env_change(void* sub, bus_msg_t* msg) {
     app_environment_t* env = msg->payload;
-    if (current_real_record.is_start) {
-        current_real_record.tick_environment_cnt += 1;
-        current_real_record.curr_log_dat.avg_temp += (uint8_t)env->temp;
+    if (global_real_record.is_start) {
+        global_real_record.tick_environment_cnt += 1;
+        global_real_record.curr_log_dat.avg_temp += (uint8_t)env->temp;
     }
     lv_label_set_text_fmt(text_sensor_temp, "%d度", (uint8_t)env->temp);
     lv_label_set_text_fmt(text_sensor_humidity, "%d%%", (uint8_t)env->humidity);
@@ -339,23 +340,6 @@ static void on_event_record_stop(void* sub, bus_msg_t* msg) {
     lv_img_set_src(icon_control_state, "S:/img/record_start.bin");
 }
 
-// static void on_event_button(void* sub, bus_msg_t* msg) {
-//     app_btn_pck* key = msg->payload;
-//     if (key->btn_code == APP_BUTTON_UP &&
-//         key->btn_state == APP_BUTTON_LONG_PRESS) {
-// #ifndef APP_TEST
-//         if (current_real_record.is_start) {
-//             return;
-//         }
-// #endif  // APP_TEST
-
-//         // 打开设置页面
-//         ui_intent_t intent;
-//         ui_fun_fast_create_intent(_this, ACTIVITY_ID_SETTING, &intent);
-//         ui_fun_start_activity(&intent);
-//     }
-// }
-
 static void on_destoy_fun(void* params) {}
 
 static void on_stop_fun(void* params) {
@@ -364,7 +348,6 @@ static void on_stop_fun(void* params) {
     bus_unregister_subscribe(bus_env_change);
     bus_unregister_subscribe(bus_record_start);
     bus_unregister_subscribe(bus_record_stop);
-    // bus_unregister_subscribe(bus_button);
 }
 
 static void on_start_fun(void* params) {
@@ -378,8 +361,6 @@ static void on_start_fun(void* params) {
                                               on_event_record_start, NULL);
     bus_record_stop = bus_register_subscribe(DATA_BUS_RECORD_STOP,
                                              on_event_record_stop, NULL);
-    // bus_button =
-    //     bus_register_subscribe(DATA_BUS_BUTTON_EVENT, on_event_button, NULL);
 }
 
 ui_data_t dark_dial = {.id = ACTIVITY_ID_DIAL_DARK,

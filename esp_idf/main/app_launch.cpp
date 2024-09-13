@@ -165,10 +165,10 @@ extern "C" void app_main(void) {
 
     printf("=====>>>> launch ui pages\n");
     // ui_init_and_start();
-    lv_demo_widgets();
-    lv_demo_widgets_start_slideshow();
+    // lv_demo_widgets();
+    // lv_demo_widgets_start_slideshow();
 
-    // test_ui();
+    test_ui();
     interface_initialize();
 
     while (1) {
