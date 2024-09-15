@@ -1,2 +1,3 @@
-idf_component_register(SRCS "interface_impl.cpp" "app_launch.cpp"
-    INCLUDE_DIRS "include")
+idf_component_register(SRC_DIRS "." "font/"
+    INCLUDE_DIRS "include"
+    EMBED_FILES "../../scripts/img_script/merge_output/merge.bin")

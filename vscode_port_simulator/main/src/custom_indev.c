@@ -121,6 +121,13 @@ void lv_sdl_keyboard_handler(SDL_Event* event) {
         }
         case SDL_TEXTINPUT: { /*Text input*/
             lv_log("SDL TextInput = %s\n", event->text.text);
+            if (!strcmp(event->text.text, "1")) {
+                lv_log("开始骑行");
+                app_start_record();
+            } else if (!strcmp(event->text.text, "2")) {
+                lv_log("停止骑行");
+                app_stop_record();
+            }
         } break;
         default:
             break;

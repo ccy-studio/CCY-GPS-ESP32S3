@@ -1,4 +1,5 @@
-﻿#include "custom_font.h"
+﻿#include "app_service.h"
+#include "custom_font.h"
 #include "math.h"
 #include "store.h"
 #include "ui.h"
@@ -88,9 +89,11 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_set_style_bg_color(menu, lv_color_hex(0xF5F5F5), LV_PART_MAIN);
     // 去除Head按钮
     lv_obj_t* head_btn = lv_menu_get_main_header_back_button(menu);
-    lv_obj_clean(head_btn);
-    lv_obj_remove_style_all(head_btn);
-    lv_obj_set_size(head_btn, 0, 0);
+    if (head_btn != NULL) {
+        lv_obj_clean(head_btn);
+        lv_obj_remove_style_all(head_btn);
+        lv_obj_set_size(head_btn, 0, 0);
+    }
     // 创建主菜单选项页面
     menu_main = lv_menu_page_create(menu, NULL);
     lv_obj_set_style_pad_hor(menu_main, 20, 0);
@@ -210,7 +213,8 @@ static void create_sub_page() {
  */
 static void on_power_close(lv_event_t* e) {
     LV_LOG_INFO("Power Close Event...\n");
-    ui_fun_finish(_this, true);
+    //发送关机事件
+    notify_power_close();
 }
 
 /**
@@ -244,8 +248,8 @@ static void update_gps_info_message(app_gps_t* gps) {
         lat = lv_list_add_btn(list, NULL, "-");
         alt = lv_list_add_btn(list, NULL, "-");
         curr_speed = lv_list_add_btn(list, NULL, "-");
-        sum_mileage = lv_list_add_btn(list, NULL, "累计里程:159Km");
-        sum_run_time = lv_list_add_btn(list, NULL, "累计骑行时长:153小时");
+        // sum_mileage = lv_list_add_btn(list, NULL, "-");
+        // sum_run_time = lv_list_add_btn(list, NULL, "-");
         ant_state = lv_list_add_btn(list, NULL, "-");
         link_satellite_count = lv_list_add_btn(list, NULL, "-");
         // 统一修改样式
@@ -264,6 +268,11 @@ static void update_gps_info_message(app_gps_t* gps) {
     lv_label_set_text_fmt(lv_obj_get_child(alt, 0), "海拔:%f", gps->altitude);
     lv_label_set_text_fmt(lv_obj_get_child(curr_speed, 0), "当前速度:%dkm/h",
                           speed_kmh);
+    // lv_label_set_text_fmt(lv_obj_get_child(sum_mileage, 0), "累计里程:%ldKm",
+    //                       gps->distance);
+    // lv_label_set_text_fmt(lv_obj_get_child(sum_run_time, 0),
+    //                       "累计骑行时长:%.1f小时",
+    //                       gps->last_millisecond / 1000.0 / 60 / 60);
     lv_label_set_text_fmt(lv_obj_get_child(ant_state, 0), "天线状态:%s",
                           gps->sats_in_use > 0 ? ANT_OK : ANT_FIL);
     lv_label_set_text_fmt(lv_obj_get_child(link_satellite_count, 0),
@@ -436,10 +445,9 @@ static lv_obj_t* create_menu_item(const char* text, const char* icon_path) {
  */
 static void on_menu_item_click_envent(lv_event_t* e) {
     // 改变顶部状态栏的标题文字内容
-    void* use_dat = lv_event_get_user_data(e);
     lv_label_set_text(text_title, ((char*)lv_event_get_user_data(e)));
     lv_obj_t* item = lv_event_get_target_obj(e);
-    last_focus = lv_group_get_focused(_this->group);
+    void* use_dat = lv_obj_get_user_data(item);
     // 在这里设置选项的默认值-默认值将会设置为焦点
     if (use_dat == sub_page_dail) {
         lv_obj_t* target = lv_obj_get_child(lv_obj_get_child(sub_page_dail, 0),
@@ -452,7 +460,7 @@ static void on_menu_item_click_envent(lv_event_t* e) {
     } else if (use_dat == sub_page_run_log) {
         lv_obj_clean(sub_page_run_log);
         // 读取保存的数据
-        app_run_log_t logs[APP_COUNT_RUN_LOG_SHOW_MAX];
+        static app_run_log_t logs[APP_COUNT_RUN_LOG_SHOW_MAX];
         app_store_read_run_log(logs, APP_COUNT_RUN_LOG_SHOW_MAX);
         for (uint8_t i = 0; i < APP_COUNT_RUN_LOG_SHOW_MAX; i++) {
             if (logs[i].run_second == 0) {
@@ -517,26 +525,27 @@ static void on_menu_item_selected_envent(lv_event_t* e) {
  * @brief 延迟设置此组件获取焦点
  * @param a
  */
-static void on_set_focus(lv_anim_t* a) {
-    lv_group_focus_obj(a->var);
-}
+// static void on_set_focus(lv_anim_t* a) {
+//     lv_group_focus_obj(a->var);
+// }
 static void set_focus(lv_obj_t* obj) {
-    lv_anim_t a;
-    lv_anim_init(&a);
-    lv_anim_set_var(&a, obj);
-    lv_anim_set_exec_cb(&a, NULL);
-    lv_anim_set_time(&a, 1);
-    lv_anim_set_delay(&a, 1);
-    lv_anim_set_ready_cb(&a, on_set_focus);
-    lv_anim_start(&a);
+    lv_group_focus_obj(obj);
+    // lv_anim_t a;
+    // lv_anim_init(&a);
+    // lv_anim_set_var(&a, obj);
+    // lv_anim_set_exec_cb(&a, NULL);
+    // lv_anim_set_time(&a, 1);
+    // lv_anim_set_delay(&a, 5);
+    // lv_anim_set_ready_cb(&a, on_set_focus);
+    // lv_anim_start(&a);
 }
 
 static void on_exit_cb(lv_event_t* e) {
     ui_fun_finish(_this, true);
 }
 
-static void on_event_gps_info(void* sub, bus_msg_t* msg) {
-    app_gps_t* gps = msg->payload;
+static void on_event_gps_info(bus_msg_t msg) {
+    app_gps_t* gps = msg.payload;
     update_gps_info_message(gps);
 }
 
@@ -556,30 +565,23 @@ static void on_destoy_fun(void* params) {
 
 static void on_index_read_cb(lv_indev_t* indev, lv_indev_data_t* data) {
     app_btn_pck* pck = lv_indev_get_driver_data(indev);
-    if (pck->btn_state == APP_BUTTON_PRESS ||
-        pck->btn_state == APP_BUTTON_LONG_PRESS) {
-        data->state = LV_INDEV_STATE_PRESSED;
-    } else {
-        data->state = LV_INDEV_STATE_RELEASED;
-    }
     if (pck->btn_code == APP_BUTTON_UP) {
         data->key = LV_KEY_PREV;
     } else if (pck->btn_code == APP_BUTTON_DOWN) {
         data->key = LV_KEY_NEXT;
     } else if (pck->btn_code == APP_BUTTON_ENTER) {
         data->key = LV_KEY_ENTER;
-    }
-
-    // 如果是子菜单就退出到主菜单
-    if (data->key == LV_KEY_ENTER &&
-        lv_menu_get_cur_main_page(menu) != menu_main) {
-        // 子菜单页内就退出到主菜单页
-        lv_obj_send_event(lv_menu_get_main_header_back_button(menu),
-                          LV_EVENT_CLICKED, NULL);
-        // 还原之前的标题内容和焦点对象
-        lv_label_set_text(text_title, "设置");
-        if (last_focus != NULL) {
-            lv_group_focus_obj(last_focus);
+        // 如果是子菜单就退出到主菜单
+        if (lv_menu_get_cur_main_page(menu) != menu_main) {
+            // 子菜单页内就退出到主菜单页
+            lv_obj_send_event(lv_menu_get_main_header_back_button(menu),
+                              LV_EVENT_CLICKED, NULL);
+            // 还原之前的标题内容和焦点对象
+            lv_label_set_text(text_title, "设置");
+            if (last_focus != NULL) {
+                lv_group_focus_obj(last_focus);
+            }
+            data->key = LV_KEY_ESC;
         }
     }
 }

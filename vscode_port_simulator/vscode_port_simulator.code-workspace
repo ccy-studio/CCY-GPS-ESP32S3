@@ -59,7 +59,10 @@
 			"xutility": "c",
 			"lv_menu_private.h": "c",
 			"lv_types.h": "c",
-			"lv_style.h": "c"
+			"lv_style.h": "c",
+			"app_service.h": "c",
+			"time.h": "c",
+			"stdbool.h": "c"
 		}
 	}
 }

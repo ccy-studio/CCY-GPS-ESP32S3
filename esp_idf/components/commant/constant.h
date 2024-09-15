@@ -12,4 +12,8 @@
 
 #define IO_BQ_CHARGE 13
 
+#define IO_BTN_UP 18
+#define IO_BTN_DOWN 17
+#define IO_BTN_ENTER 21
+
 #endif

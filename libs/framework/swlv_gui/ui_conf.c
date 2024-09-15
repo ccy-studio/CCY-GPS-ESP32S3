@@ -5,8 +5,10 @@
  * @Date: 2023-12-07 17:37:28
  * @LastEditTime: 2023-12-25 14:29:00
  */
-#include "ui.h"
+#include "app_config.h"
+#include "app_service.h"
 #include "mergin_fsys.h"
+#include "ui.h"
 
 ui_data_t* ui_data_def[MAX_PAGE];
 
@@ -70,6 +72,10 @@ static void anim_cb(void* var, int32_t v) {
     }
 }
 
+static void _send_open_bl(void* params) {
+    notify_bl_event(100);
+}
+
 void activity_init_start() {
     ui_screen_start = lv_obj_create(NULL);
     lv_obj_clear_flag(ui_screen_start, LV_OBJ_FLAG_SCROLLABLE);
@@ -116,4 +122,5 @@ void activity_init_start() {
     ui_def_start.launcher = true;
     ui_def_start.launcher_mode = SINGLE_TASK;
     ui_def_start.id = ACTIVITY_ID_START;
+    lv_async_call(_send_open_bl, NULL);
 };

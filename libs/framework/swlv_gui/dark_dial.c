@@ -1,4 +1,5 @@
 ﻿#include <math.h>
+#include "app_service.h"
 #include "custom_font.h"
 #include "ui.h"
 
@@ -20,19 +21,13 @@ static lv_obj_t* text_sensor_temp = NULL;      // 显示当前传感器的温度
 static lv_obj_t* text_sensor_humidity = NULL;  // 显示当前传感器的湿度
 
 /*EventBus*/
-static void* bus_data_change;  /*仪表数据*/
+static void* bus_gps_change;   /*GPS数据*/
+static void* bus_data_change;  /*行驶记录数据*/
 static void* bus_battery;      /*电池电量数据*/
 static void* bus_env_change;   /*环境信息数据*/
 static void* bus_record_start; /*开始骑行事件*/
 static void* bus_record_stop;  /*停止骑行事件*/
 static void* bus_button;       /*按键事件*/
-
-static void on_event_data_change(void* sub, bus_msg_t* msg);
-static void on_event_battery(void* sub, bus_msg_t* msg);
-static void on_event_env_change(void* sub, bus_msg_t* msg);
-static void on_event_record_start(void* sub, bus_msg_t* msg);
-static void on_event_record_stop(void* sub, bus_msg_t* msg);
-// static void on_event_button(void* sub, bus_msg_t* msg);
 
 static lv_obj_t* fun_get_view() {
     return page_view;
@@ -65,11 +60,10 @@ static void create_battery_bar() {
 
 static void on_event_key_cb(lv_event_t* e) {
     uint32_t key = lv_event_get_key(e);
-    if (key == LV_KEY_ENTER) {
-        ui_intent_t intent;
-        ui_fun_fast_create_intent(_this, ACTIVITY_ID_SETTING, &intent);
-        ui_fun_start_activity(&intent);
-    }
+    //默认给了聚焦所以只接受LV_KEY_ENTER等控制性按键类型，这里默认只有LV_KEY_ENTER
+    ui_intent_t intent;
+    ui_fun_fast_create_intent(_this, ACTIVITY_ID_SETTING, &intent);
+    ui_fun_start_activity(&intent);
 }
 
 static void on_create_fun(ui_data_t* ui_dat, void* params) {
@@ -80,7 +74,9 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_set_style_bg_img_src(page_view, "S:/img/dark_style_bg.bin",
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     // 添加按键的事件
-    lv_obj_add_event_cb(page_view, on_event_key_cb, LV_EVENT_KEY, NULL);
+    lv_obj_add_event_cb(page_view, on_event_key_cb, LV_EVENT_RELEASED, NULL);
+    lv_obj_remove_state(page_view, LV_STATE_DISABLED);
+    lv_group_focus_obj(page_view);
 
     icon_gps = lv_img_create(page_view);
     lv_img_set_src(icon_gps, "S:/img/gps.bin");
@@ -152,7 +148,7 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_set_height(text_run_timeinfo, LV_SIZE_CONTENT);
     lv_obj_set_x(text_run_timeinfo, 13);
     lv_obj_set_y(text_run_timeinfo, 137);
-    lv_label_set_text(text_run_timeinfo, "-");
+    lv_label_set_text(text_run_timeinfo, "");
     lv_obj_set_style_text_color(text_run_timeinfo, lv_color_hex(0xFFFFFF),
                                 LV_PART_MAIN | LV_STATE_DEFAULT);
     lv_obj_set_style_text_opa(text_run_timeinfo, 255,
@@ -235,54 +231,27 @@ static void on_create_fun(ui_data_t* ui_dat, void* params) {
     lv_obj_clear_flag(icon_control_state, LV_OBJ_FLAG_SCROLLABLE);
 }
 
-static void on_event_data_change(void* sub, bus_msg_t* msg) {
-    app_real_record_t* dat = (app_real_record_t*)msg->payload;
-    // 时间
-    lv_label_set_text_fmt(text_current_time, "%02d:%02d",
-                          dat->curr_gps.datetime.hour,
-                          dat->curr_gps.datetime.minute);
-    // GPS图标
-    if (dat->curr_gps.sats_in_use == 0) {
-        lv_obj_add_flag(icon_gps, LV_OBJ_FLAG_HIDDEN);
-    } else {
-        lv_obj_clear_flag(icon_gps, LV_OBJ_FLAG_HIDDEN);
-    }
-    // GPS信息
-    int speed_kmh = roundf((dat->curr_gps.speed * 3.6));
-    lv_label_set_text_fmt(text_current_speed, "%02d", speed_kmh);
+static void on_event_data_change(bus_msg_t msg) {
+    app_real_record_t* dat = (app_real_record_t*)msg.payload;
 
     // 当开启了骑行
     if (dat->is_start) {
         // 设置骑行时间
         lv_label_set_text(text_run_timeinfo,
                           format_time(dat->curr_log_dat.run_second));
-        if (dat->curr_log_dat.max_speed < speed_kmh) {
-            dat->curr_log_dat.max_speed = speed_kmh;
-        }
-        lv_label_set_text_fmt(text_speed_max, "最大(Max): %dkm/h",
-                              dat->curr_log_dat.max_speed);
-        // 平均速度计算
-        if (dat->curr_gps.speed > 1) {
-            dat->tick_gps_cnt += 1;
-            dat->speed_sum += dat->curr_gps.speed;
-            if (dat->tick_gps_cnt % 10 == 0) {
-                uint16_t avg_speed =
-                    roundf((dat->speed_sum / dat->tick_gps_cnt) * 3.6);
-                lv_label_set_text_fmt(text_speed_avg, "平均(Avg): %dkm/h",
-                                      avg_speed);
-            }
-        }
-        // 计算小阶段的里程，里程=速度x时间;
-        double distance = dat->curr_gps.speed * APP_GPS_FRAME;
-        dat->distance += distance;
-        int distance_km = (int)(dat->distance / 1000);
+        uint16_t max_speed = roundf(dat->curr_log_dat.max_speed * 3.6);
+        uint16_t avg_speed = roundf((dat->sum_speed / dat->tick_cnt) * 3.6);
+        lv_label_set_text_fmt(text_speed_max, "最大(Max): %dkm/h", max_speed);
+        lv_label_set_text_fmt(text_speed_avg, "平均(Avg): %dkm/h", avg_speed);
+
+        int distance_km = (int)(dat->curr_log_dat.mileage / 1000);
         lv_label_set_text_fmt(text_speed_sum, "里程(Sum): %dkm", distance_km);
     }
 }
-static void on_event_battery(void* sub, bus_msg_t* msg) {
-    app_battery_t* battery = msg->payload;
+static void on_event_battery(bus_msg_t msg) {
+    app_battery_t* battery = msg.payload;
     // 电量
-    lv_label_set_text_fmt(text_battery, "%.1f%%%", battery->level);
+    lv_label_set_text_fmt(text_battery, "%.1f%%", battery->level);
     if (battery->is_charge) {
         // 正在充电
         lv_obj_set_style_text_color(text_battery, lv_color_hex(0x59EE71), 0);
@@ -323,21 +292,45 @@ static void on_event_battery(void* sub, bus_msg_t* msg) {
         }
     }
 }
-static void on_event_env_change(void* sub, bus_msg_t* msg) {
-    app_environment_t* env = msg->payload;
-    if (global_real_record.is_start) {
-        global_real_record.tick_environment_cnt += 1;
-        global_real_record.curr_log_dat.avg_temp += (uint8_t)env->temp;
-    }
-    lv_label_set_text_fmt(text_sensor_temp, "%d度", (uint8_t)env->temp);
-    lv_label_set_text_fmt(text_sensor_humidity, "%d%%", (uint8_t)env->humidity);
+static void on_event_env_change(bus_msg_t msg) {
+    app_environment_t* env = msg.payload;
+    lv_label_set_text_fmt(text_sensor_temp, "%.1f度", env->temp);
+    lv_label_set_text_fmt(text_sensor_humidity, "%.1f%%", env->humidity);
 }
-static void on_event_record_start(void* sub, bus_msg_t* msg) {
+static void on_event_record_start(bus_msg_t msg) {
     lv_label_set_text(text_run_timeinfo, "0秒");
     lv_img_set_src(icon_control_state, "S:/img/record_stop.bin");
 }
-static void on_event_record_stop(void* sub, bus_msg_t* msg) {
+static void on_event_record_stop(bus_msg_t msg) {
     lv_img_set_src(icon_control_state, "S:/img/record_start.bin");
+
+    lv_label_set_text(text_speed_max, "最大(Max): 0km/s");
+    lv_label_set_text(text_speed_avg, "平均(Avg): 0km/s");
+    lv_label_set_text(text_speed_sum, "里程(Sum): 0km");
+    lv_label_set_text(text_run_timeinfo, "");
+}
+
+/**
+ * GPS的刷新事件
+ */
+static void on_event_gps_change(bus_msg_t msg) {
+    app_gps_t* dat = (app_gps_t*)msg.payload;
+    // 时间
+    lv_label_set_text_fmt(text_current_time, "%02d:%02d", dat->datetime.hour,
+                          dat->datetime.minute);
+
+    // GPS图标
+    if (dat->sats_in_use == 0) {
+        lv_obj_add_flag(icon_gps, LV_OBJ_FLAG_HIDDEN);
+    } else {
+        lv_obj_clear_flag(icon_gps, LV_OBJ_FLAG_HIDDEN);
+    }
+    // GPS信息 从m/s换算成km/h
+    if (dat->speed == 0) {
+        return;
+    }
+    int speed_kmh = roundf((dat->speed * 3.6));
+    lv_label_set_text_fmt(text_current_speed, "%02d", speed_kmh);
 }
 
 static void on_destoy_fun(void* params) {}
@@ -348,11 +341,14 @@ static void on_stop_fun(void* params) {
     bus_unregister_subscribe(bus_env_change);
     bus_unregister_subscribe(bus_record_start);
     bus_unregister_subscribe(bus_record_stop);
+    bus_unregister_subscribe(bus_gps_change);
 }
 
 static void on_start_fun(void* params) {
     bus_data_change = bus_register_subscribe(DATA_BUS_RECORD_CHANGE,
                                              on_event_data_change, NULL);
+    bus_gps_change =
+        bus_register_subscribe(DATA_BUS_GPS_REFRESH, on_event_gps_change, NULL);
     bus_battery =
         bus_register_subscribe(DATA_BUS_BATTERY_EVENT, on_event_battery, NULL);
     bus_env_change =
@@ -363,10 +359,30 @@ static void on_start_fun(void* params) {
                                              on_event_record_stop, NULL);
 }
 
+static void on_index_read_cb(lv_indev_t* indev, lv_indev_data_t* data) {
+    app_btn_pck* pck = lv_indev_get_driver_data(indev);
+    if (pck->btn_code == APP_BUTTON_UP) {
+        data->key = LV_KEY_UP;
+    } else if (pck->btn_code == APP_BUTTON_DOWN) {
+        data->key = LV_KEY_DOWN;
+    } else if (pck->btn_code == APP_BUTTON_ENTER) {
+        data->key = LV_KEY_ENTER;
+        if (pck->btn_state == APP_BUTTON_LONG_PRESS) {
+            if (global_real_record.is_start) {
+                app_stop_record();
+            } else {
+                app_start_record();
+            }
+            data->key = LV_KEY_ESC;
+        }
+    }
+}
+
 ui_data_t dark_dial = {.id = ACTIVITY_ID_DIAL_DARK,
                        .launcher_mode = SINGLE_TASK,  // 栈内复用模式
                        .fun_get_view = fun_get_view,
                        .fun_on_create = on_create_fun,
                        .fun_on_destoy = on_destoy_fun,
                        .fun_on_stop = on_stop_fun,
+                       .fun_read_cb = on_index_read_cb,
                        .fun_on_start = on_start_fun};

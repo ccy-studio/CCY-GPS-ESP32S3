@@ -17,7 +17,7 @@ void app_store_read_run_log(app_run_log_t* arr, size_t len);
  * @brief 写入骑行日志
  * @param arr
  */
-void app_store_save_run_log(app_run_log_t* arr);
+void app_store_save_run_log(app_real_record_t* record);
 
 /**
  * @brief 清空骑行日志

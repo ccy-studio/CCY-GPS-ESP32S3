@@ -135,9 +135,6 @@ static lv_display_t* hal_init(int32_t w, int32_t h) {
 static void* thread_task(void* args) {
     sleep(5);
     unsigned int seed = time(NULL);  // 使用当前时间作为种子
-    global_real_record.is_start = true;
-    global_real_record.curr_log_dat.run_second = 0;
-    app_start_record();
     while (1) {
         // 填充电池信息
         global_battery.level =
@@ -155,32 +152,27 @@ static void* thread_task(void* args) {
             (double)(rand_r(&seed) % 360) - 180;  // 随机经度 -180到180
         global_gps.altitude =
             (double)(rand_r(&seed) % 5000);  // 随机海拔 0-5000米
-        global_gps.speed = (double)(rand_r(&seed) % 27);  // 随机速度 0-100 m/s
+        global_gps.speed = (double)(rand_r(&seed) % 100);  // 随机速度 0-100 m/s
         global_gps.sats_in_use =
             (uint8_t)(rand_r(&seed) % 12);  // 随机卫星数量 0-12
+
+        global_gps.last_millisecond = time(NULL);
+        global_gps.diff_second = 1;
+        global_gps.distance = global_gps.diff_second * global_gps.speed;
         time_t now = time(NULL);
         struct tm* local = localtime(&now);
+        global_gps.datetime.year = local->tm_year;
+        global_gps.datetime.month = local->tm_mon;
+        global_gps.datetime.day = local->tm_mday;
         global_gps.datetime.hour = local->tm_hour;
         global_gps.datetime.minute = local->tm_min;
+        global_gps.datetime.second = local->tm_sec;
 
-        // 填充骑行日志数据
-        snprintf(global_real_record.curr_log_dat.date,
-                 sizeof(global_real_record.curr_log_dat.date),
-                 "2023-10-01");  // 固定日期
-        snprintf(global_real_record.curr_log_dat.start_time,
-                 sizeof(global_real_record.curr_log_dat.start_time),
-                 "08:00:00");  // 固定开始时间
-        snprintf(global_real_record.curr_log_dat.end_time,
-                 sizeof(global_real_record.curr_log_dat.end_time),
-                 "09:00:00");  // 固定结束时间
-        global_real_record.curr_log_dat.run_second++;
-
-        memcpy(&global_real_record.curr_gps, &global_gps, sizeof(app_gps_t));
         notify_battery_event(&global_battery);
         notify_env_refresh(&global_env);
         notify_gps_refresh(&global_gps);
-        notify_data_change();
-        sleep(1);  // 每秒更新一次
+        notify_data_change(false);
+        sleep(global_gps.diff_second);  // 每秒更新一次
     }
     return NULL;
 }
